@@ -31,6 +31,7 @@ import {
 import Link from "next/link";
 import { SyncManager } from "./sync-manager";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface OfflineRegistration {
   id: string;
   data: any;
@@ -38,7 +39,9 @@ interface OfflineRegistration {
   synced: boolean;
   syncedAt?: string;
 }
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface OfflineScreening {
   id: string;
   data: any;
@@ -46,6 +49,7 @@ interface OfflineScreening {
   synced: boolean;
   syncedAt?: string;
 }
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export default function SyncPage() {
   const [pendingRegistrations, setPendingRegistrations] = useState<

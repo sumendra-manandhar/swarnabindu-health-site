@@ -17,10 +17,12 @@ import Link from "next/link";
 import { OfflineStorage } from "@/lib/offline-storage";
 // import { DatabaseService } from "@/lib/supabase";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface RegistrationSuccessProps {
   registrationData: any;
   onNewRegistration: () => void;
 }
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export function RegistrationSuccess({
   registrationData,

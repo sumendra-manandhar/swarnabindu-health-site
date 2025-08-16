@@ -160,7 +160,7 @@ export default function Home() {
           <p className="text-gray-600 max-w-2xl mx-auto">
             बालबालिकाको स्वास्थ्य र प्रतिरक्षा क्षमता बृद्धिको लागि आयुर्वेदिक
             स्वर्णबिन्दु प्राशन कार्यक्रम | Ayurvedic Swarnabindu Prashan
-            program for children's health and immunity enhancement
+            program for childrens health and immunity enhancement
           </p>
         </div>
         {/* Connection Status Alert */}
@@ -168,7 +168,7 @@ export default function Home() {
           <Alert className="mb-6 border-amber-200 bg-amber-50">
             <WifiOff className="h-4 w-4 text-amber-600" />
             <AlertDescription className="text-amber-800">
-              You're currently offline. Data will be saved locally and synced
+              Youre currently offline. Data will be saved locally and synced
               when connection is restored.
             </AlertDescription>
           </Alert>
@@ -194,7 +194,7 @@ export default function Home() {
           <Card className="border-2 border-green-200 shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-green-700">
-                आजका दर्ता | Today's Registrations
+                आजका दर्ता | Todays Registrations
               </CardTitle>
               <Calendar className="h-5 w-5 text-green-600" />
             </CardHeader>

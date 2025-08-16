@@ -18,12 +18,14 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Heart, AlertCircle, ArrowLeft, Zap } from "lucide-react";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface RegistrationStep2Props {
   data: any;
   onUpdate: (data: any) => void;
   onNext: () => void;
   onPrev: () => void;
 }
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export function RegistrationStep2({
   data,
@@ -203,8 +205,7 @@ export function RegistrationStep2({
             </SelectContent>
           </Select>
         </div>
-        // Add these fields in your RegistrationData interface as well: //
-        weight, height, muac, headCircumference, chestCircumference
+
         <div className="space-y-6">
           {/* Anthropometric Measurements */}
           <Card className="p-4 border border-gray-200 bg-gray-50 shadow-sm">

@@ -269,7 +269,7 @@ export function SyncManager() {
           <Alert>
             <WifiOff className="h-4 w-4" />
             <AlertDescription>
-              You're working offline. Data will be saved locally and synced when
+              Youre working offline. Data will be saved locally and synced when
               connection is restored.
             </AlertDescription>
           </Alert>

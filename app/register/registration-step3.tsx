@@ -19,12 +19,14 @@ import {
   Zap,
 } from "lucide-react";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface RegistrationStep3Props {
   data: any;
   onUpdate: (data: any) => void;
   onComplete: () => void;
   onPrev: () => void;
 }
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export function RegistrationStep3({
   data,

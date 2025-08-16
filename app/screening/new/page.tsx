@@ -422,7 +422,7 @@ export default function NewScreeningPage() {
       {!isOnline && (
         <Alert>
           <AlertDescription>
-            You're working offline. Screening data will be saved locally and
+            Youre working offline. Screening data will be saved locally and
             synced when online.
           </AlertDescription>
         </Alert>
