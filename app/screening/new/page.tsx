@@ -47,12 +47,12 @@ interface Patient {
   id: string;
   serial_no: string;
   childName: string;
-  birth_date: string;
+  dateOfBirth: string;
   age: string;
   gender: string;
   guardianName?: string;
-  father_name?: string;
-  mother_name?: string;
+  fatherName?: string;
+  motherName?: string;
   contactNumber: string;
   district: string;
   palika: string;
@@ -140,7 +140,7 @@ export default function NewScreeningPage() {
   useEffect(() => {
     if (patient) {
       // Auto-calculate dose based on age
-      const ageInMonths = calculateAgeInMonths(patient.birth_date);
+      const ageInMonths = calculateAgeInMonths(patient.dateOfBirth);
       const recommendedDose = calculateDoseAmount(ageInMonths);
       const batchNumber = generateBatchNumber();
       const nextDoseDate = calculateNextDoseDate();
@@ -168,12 +168,12 @@ export default function NewScreeningPage() {
           id: offlinePatient.localId || offlinePatient.id,
           serial_no: offlinePatient.serial_no || "",
           childName: offlinePatient.childName || "",
-          birth_date: offlinePatient.birth_date || "",
+          dateOfBirth: offlinePatient.dateOfBirth || "",
           age: offlinePatient.age || "",
           gender: offlinePatient.gender || "",
           guardianName: offlinePatient.guardianName || "",
-          father_name: offlinePatient.father_name || "",
-          mother_name: offlinePatient.mother_name || "",
+          fatherName: offlinePatient.fatherName || "",
+          motherName: offlinePatient.motherName || "",
           contactNumber: offlinePatient.contactNumber || "",
           district: offlinePatient.district || "",
           palika: offlinePatient.palika || "",
@@ -477,8 +477,8 @@ export default function NewScreeningPage() {
                     </Label>
                     <p>
                       {patient.guardianName ||
-                        patient.father_name ||
-                        patient.mother_name}
+                        patient.fatherName ||
+                        patient.motherName}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
