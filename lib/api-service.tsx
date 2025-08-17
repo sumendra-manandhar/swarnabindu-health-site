@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 export class ApiService {
   static async createRegistration(registrationData: any) {
     try {
@@ -26,3 +28,4 @@ export class ApiService {
     }
   }
 }
+/* eslint-disable @typescript-eslint/no-explicit-any */
