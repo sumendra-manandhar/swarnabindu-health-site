@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { OfflineStorage } from "@/lib/offline-storage";
+import { ApiService } from "@/lib/api-service";
 // import { DatabaseService } from "@/lib/supabase";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -50,15 +51,15 @@ export function RegistrationSuccess({
   //     setSerialNumber(registrationRecord.serial_no);
 
   //     if (isOnline) {
-  //       // try {
-  //       //   const { data, error } = await DatabaseService.createRegistration(registrationRecord)
-  //       //   if (!error) {
-  //       //     console.log("Registration saved to database")
-  //       //     return
-  //       //   }
-  //       // } catch (error) {
-  //       //   console.error("Error saving to database:", error)
-  //       // }
+  //       try {
+  //         const { data, error } = await DatabaseService.createRegistration(registrationRecord)
+  //         if (!error) {
+  //           console.log("Registration saved to database")
+  //           return
+  //         }
+  //       } catch (error) {
+  //         console.error("Error saving to database:", error)
+  //       }
   //     }
 
   //     // Save to offline storage as fallback
@@ -67,6 +68,63 @@ export function RegistrationSuccess({
   //   } catch (error) {
   //     console.error("Error saving registration:", error);
   //   }
+  // };
+
+  // const saveRegistration = async () => {
+  //   try {
+  //     const registrationRecord = {
+  //       ...registrationData,
+  //       date: new Date().toISOString().split("T")[0],
+  //       created_at: new Date().toISOString(),
+  //       serial_no: generateSerialNumber(),
+  //       age: calculateAge(registrationData.dateOfBirth),
+  //     };
+
+  //     setSerialNumber(registrationRecord.serial_no);
+
+  //     // Save offline as fallback
+  //     OfflineStorage.saveRegistration(registrationRecord);
+  //     console.log("Registration saved offline", registrationRecord);
+
+  //     if (isOnline) {
+  //       try {
+  //         const response = await fetch(
+  //           "https://health-service.gyanbazzar.com/registrations",
+  //           {
+  //             method: "POST",
+  //             headers: {
+  //               "Content-Type": "application/json",
+  //             },
+  //             body: JSON.stringify(registrationRecord),
+  //           }
+  //         );
+
+  //         if (!response.ok) {
+  //           console.error(
+  //             "Failed to send registration to API:",
+  //             response.statusText
+  //           );
+  //         } else {
+  //           console.log("Registration sent to API successfully");
+  //         }
+  //       } catch (error) {
+  //         console.error("Error sending registration to API:", error);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Error saving registration:", error);
+  //   }
+  // };
+
+  // const generateSerialNumber = () => {
+  //   const today = new Date();
+  //   const year = today.getFullYear().toString().slice(-2);
+  //   const month = (today.getMonth() + 1).toString().padStart(2, "0");
+  //   const day = today.getDate().toString().padStart(2, "0");
+  //   const random = Math.floor(Math.random() * 10000)
+  //     .toString()
+  //     .padStart(4, "0");
+  //   return `SB${year}${month}${day}${random}`;
   // };
 
   const saveRegistration = async () => {
@@ -81,35 +139,19 @@ export function RegistrationSuccess({
 
       setSerialNumber(registrationRecord.serial_no);
 
-      // Save offline as fallback
-      OfflineStorage.saveRegistration(registrationRecord);
-      console.log("Registration saved offline", registrationRecord);
-
       if (isOnline) {
-        try {
-          const response = await fetch(
-            "https://www.gyanbazaaar.com/api/register",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(registrationRecord),
-            }
-          );
-
-          if (!response.ok) {
-            console.error(
-              "Failed to send registration to API:",
-              response.statusText
-            );
-          } else {
-            console.log("Registration sent to API successfully");
-          }
-        } catch (error) {
-          console.error("Error sending registration to API:", error);
+        const { data, error } = await ApiService.createRegistration(
+          registrationRecord
+        );
+        if (!error) {
+          console.log("✅ Registration saved to API");
+          return;
         }
       }
+
+      // Save to offline storage as fallback
+      OfflineStorage.saveRegistration(registrationRecord);
+      console.log("⚡ Registration saved offline");
     } catch (error) {
       console.error("Error saving registration:", error);
     }
@@ -134,16 +176,32 @@ export function RegistrationSuccess({
       (today.getMonth() - birth.getMonth());
 
     if (ageInMonths < 12) {
-      return `${ageInMonths} महिना
-    
-    if (ageInMonths < 12) {
-      return \`${ageInMonths} महिना`;
+      return `${ageInMonths} महिना`;
     } else {
       const years = Math.floor(ageInMonths / 12);
       const months = ageInMonths % 12;
       return months > 0 ? `${years} वर्ष ${months} महिना` : `${years} वर्ष`;
     }
   };
+
+  // const calculateAge = (birthDate: string) => {
+  //   const birth = new Date(birthDate);
+  //   const today = new Date();
+  //   const ageInMonths =
+  //     (today.getFullYear() - birth.getFullYear()) * 12 +
+  //     (today.getMonth() - birth.getMonth());
+
+  //   if (ageInMonths < 12) {
+  //     return `${ageInMonths} महिना
+
+  //   if (ageInMonths < 12) {
+  //     return \`${ageInMonths} महिना`;
+  //   } else {
+  //     const years = Math.floor(ageInMonths / 12);
+  //     const months = ageInMonths % 12;
+  //     return months > 0 ? `${years} वर्ष ${months} महिना` : `${years} वर्ष`;
+  //   }
+  // };
 
   const generateCertificate = () => {
     setCertificateGenerated(true);

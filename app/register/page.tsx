@@ -258,7 +258,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Today's Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card className="border-green-200 bg-green-50">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
@@ -306,10 +306,10 @@ export default function RegisterPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
 
         {/* Progress Bar */}
-        <Card className="mb-6">
+        {/* <Card className="mb-6">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               {[1, 2, 3].map((step) => (
@@ -332,7 +332,7 @@ export default function RegisterPage() {
             </div>
             <Progress value={(currentStep / 3) * 100} className="h-2" />
           </CardContent>
-        </Card>
+        </Card> */}
 
         {/* Offline Warning */}
         {!isOnline && (
