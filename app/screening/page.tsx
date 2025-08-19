@@ -31,7 +31,7 @@ import Link from "next/link";
 interface Patient {
   id: string;
   serial_no: string;
-  child_name: string;
+  childName: string;
   birth_date: string;
   age: string;
   gender: string;
@@ -87,7 +87,7 @@ export default function ScreeningPage() {
       const offlinePatients = offlineRegistrations.map((reg) => ({
         id: reg.localId || reg.id,
         serial_no: reg.serial_no || "",
-        child_name: reg.child_name || "",
+        childName: reg.childName || "",
         birth_date: reg.birth_date || "",
         age: reg.age || "",
         gender: reg.gender || "",
@@ -112,7 +112,7 @@ export default function ScreeningPage() {
       //       const onlinePatients = onlineData.map((reg: any) => ({
       //         id: reg.id,
       //         serial_no: reg.serial_no || "",
-      //         child_name: reg.child_name || "",
+      //         childName: reg.childName || "",
       //         birth_date: reg.birth_date || "",
       //         age: reg.age || "",
       //         gender: reg.gender || "",
@@ -132,7 +132,7 @@ export default function ScreeningPage() {
       //         const existsOffline = allPatients.some(
       //           (offlinePatient) =>
       //             offlinePatient.serial_no === onlinePatient.serial_no ||
-      //             (offlinePatient.child_name === onlinePatient.child_name &&
+      //             (offlinePatient.childName === onlinePatient.childName &&
       //               offlinePatient.contact_number === onlinePatient.contact_number),
       //         )
       //         if (!existsOffline) {
@@ -162,7 +162,7 @@ export default function ScreeningPage() {
 
     const filtered = patients.filter(
       (patient) =>
-        patient.child_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient.childName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         patient.contact_number?.includes(searchTerm) ||
         patient.serial_no?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         patient.guardian_name
@@ -324,6 +324,9 @@ export default function ScreeningPage() {
                 </AlertDescription>
               </Alert>
             ) : (
+
+
+
               <ScrollArea className="h-[500px]">
                 <div className="grid gap-4">
                   {filteredPatients.map((patient) => (
@@ -337,7 +340,7 @@ export default function ScreeningPage() {
                             <div className="flex items-center gap-4 mb-4">
                               <div>
                                 <h3 className="text-xl font-bold text-blue-600">
-                                  {patient.child_name}
+                                  {patient.childName}
                                 </h3>
                                 <p className="text-sm text-muted-foreground">
                                   Serial: {patient.serial_no}
@@ -388,7 +391,7 @@ export default function ScreeningPage() {
                               href={`/screening/new?patientId=${
                                 patient.id
                               }&patientName=${encodeURIComponent(
-                                patient.child_name
+                                patient.childName
                               )}`}
                             >
                               <Button
@@ -406,6 +409,8 @@ export default function ScreeningPage() {
                   ))}
                 </div>
               </ScrollArea>
+
+              
             )}
           </CardContent>
         </Card>

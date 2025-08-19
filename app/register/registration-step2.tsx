@@ -16,7 +16,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MapPin, Heart, AlertCircle, ArrowLeft, Zap } from "lucide-react";
+import {
+  MapPin,
+  Heart,
+  AlertCircle,
+  ArrowLeft,
+  Zap,
+  Syringe,
+  CheckCircle2,
+  Sparkles,
+} from "lucide-react";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface RegistrationStep2Props {
@@ -112,7 +121,7 @@ export function RegistrationStep2({
           </Badge>
         </div>
         {/* Health Conditions */}
-        <div className="space-y-3">
+        {/* <div className="space-y-3">
           <Label className="flex items-center gap-2">
             <Heart className="h-4 w-4" />
             हालको स्वास्थ्य अवस्था | Current Health Conditions
@@ -147,7 +156,7 @@ export function RegistrationStep2({
               {errors.healthConditions}
             </p>
           )}
-        </div>
+        </div> */}
         {/* Contraindication Warning */}
         {hasContraindications && (
           <Alert className="border-red-200 bg-red-50">
@@ -186,7 +195,7 @@ export function RegistrationStep2({
           />
         </div>
         {/* Vaccination Status */}
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label htmlFor="vaccinationStatus">खोप स्थिति</Label>
           <Select
             value={data.vaccinationStatus || ""}
@@ -204,6 +213,106 @@ export function RegistrationStep2({
               <SelectItem value="unknown">थाहा छैन</SelectItem>
             </SelectContent>
           </Select>
+        </div> */}
+
+        <div className="space-y-3">
+          <Label>खोप स्थिति</Label>
+
+          {/* New / Old Choice */}
+          <div className="flex gap-3">
+            {/* New */}
+            <Button
+              type="button"
+              variant={data.vaccinationStatus === "new" ? "default" : "outline"}
+              className="flex-1 flex items-center gap-2 rounded-2xl shadow-sm"
+              onClick={() =>
+                onUpdate({
+                  ...data,
+                  vaccinationStatus: "new",
+                  oldDoseKnown: undefined,
+                  doses: undefined,
+                })
+              }
+            >
+              <Sparkles className="h-4 w-4" />
+              नयाँ
+              {data.vaccinationStatus === "new" && (
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+              )}
+            </Button>
+
+            {/* Old */}
+            <Button
+              type="button"
+              variant={data.vaccinationStatus === "old" ? "default" : "outline"}
+              className="flex-1 flex items-center gap-2 rounded-2xl shadow-sm"
+              onClick={() =>
+                onUpdate({
+                  ...data,
+                  vaccinationStatus: "old",
+                  oldDoseKnown: undefined,
+                  doses: undefined,
+                })
+              }
+            >
+              <Syringe className="h-4 w-4" />
+              पुरानो
+              {data.vaccinationStatus === "old" && (
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+              )}
+            </Button>
+          </div>
+
+          {/* If Old → Ask once */}
+          {data.vaccinationStatus === "old" &&
+            data.oldDoseKnown === undefined && (
+              <div className="flex gap-3 mt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 rounded-xl"
+                  onClick={() => onUpdate({ ...data, oldDoseKnown: false })}
+                >
+                  🤷 थाहा छैन
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 rounded-xl"
+                  onClick={() =>
+                    onUpdate({
+                      ...data,
+                      oldDoseKnown: true,
+                      doses: data.doses || 1,
+                    })
+                  }
+                >
+                  थाहा छ
+                </Button>
+              </div>
+            )}
+
+          {/* If Old + Don’t Know */}
+          {data.vaccinationStatus === "old" && data.oldDoseKnown === false && (
+            <p className="text-muted-foreground text-sm">डोज संख्या थाहा छैन</p>
+          )}
+
+          {/* If Old + Know → show only dose input */}
+          {data.vaccinationStatus === "old" && data.oldDoseKnown === true && (
+            <div className="flex items-center gap-2 p-2 border rounded-xl shadow-sm mt-2">
+              <Label className="whitespace-nowrap">डोज संख्या:</Label>
+              <Input
+                type="number"
+                className="w-20 text-center"
+                value={data.doses || 1}
+                min={1}
+                onChange={(e) =>
+                  onUpdate({ ...data, doses: Number(e.target.value) })
+                }
+              />
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">

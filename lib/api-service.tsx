@@ -4,12 +4,17 @@ export class ApiService {
   static async createRegistration(registrationData: any) {
     try {
       alert("api calling");
+
+      const token = localStorage.getItem("authToken"); // Get token from login
+
       const response = await fetch(
         "https://health-service.gyanbazzar.com/registrations",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
           },
           body: JSON.stringify(registrationData),
         }

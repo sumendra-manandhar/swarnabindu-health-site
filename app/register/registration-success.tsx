@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,9 +33,19 @@ export function RegistrationSuccess({
   const [isOnline, setIsOnline] = useState(true);
   const [certificateGenerated, setCertificateGenerated] = useState(false);
 
+  // useEffect(() => {
+  //   setIsOnline(navigator.onLine);
+  //   saveRegistration();
+  // }, []);
+
+  const hasSaved = useRef(false);
+
   useEffect(() => {
     setIsOnline(navigator.onLine);
-    saveRegistration();
+    if (!hasSaved.current) {
+      saveRegistration();
+      hasSaved.current = true;
+    }
   }, []);
 
   // const saveRegistration = async () => {
@@ -207,112 +217,205 @@ export function RegistrationSuccess({
     setCertificateGenerated(true);
 
     const certificateContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>स्वर्णबिन्दु प्राशन प्रमाणपत्र</title>
-          <meta charset="UTF-8">
-          <style>
-            body { font-family: 'Noto Sans Devanagari', Arial, sans-serif; margin: 0; padding: 20px; background: #f8f9fa; }
-            .certificate { max-width: 800px; margin: 0 auto; background: white; border: 3px solid #d4af37; border-radius: 15px; overflow: hidden; }
-            .header { background: linear-gradient(135deg, #d4af37, #f4e4bc); padding: 30px; text-align: center; color: #8b4513; }
-            .logo { width: 80px; height: 80px; margin: 0 auto 20px; background: #d4af37; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; }
-            .title { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
-            .subtitle { font-size: 18px; opacity: 0.8; }
-            .content { padding: 40px; }
-            .patient-info { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; }
-            .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0; }
-            .info-item { padding: 10px; background: white; border-radius: 5px; border-left: 4px solid #d4af37; }
-            .label { font-weight: bold; color: #666; font-size: 14px; }
-            .value { font-size: 16px; color: #333; margin-top: 5px; }
-            .footer { text-align: center; padding: 20px; background: #f8f9fa; color: #666; font-size: 12px; }
-            .serial { position: absolute; top: 20px; right: 20px; background: #d4af37; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
-          </style>
-        </head>
-        <body>
-          <div class="certificate">
-            <div class="serial">#${serialNumber}</div>
-            <div class="header">
-              <div class="logo">स्व</div>
-              <div class="title">स्वर्णबिन्दु प्राशन प्रमाणपत्र</div>
-              <div class="subtitle">Swarnabindu Prashana Certificate</div>
-            </div>
-            <div class="content">
-              <div class="patient-info">
-                <h3 style="margin-top: 0; color: #d4af37;">बिरामीको विवरण | Patient Details</h3>
-                <div class="info-grid">
-                  <div class="info-item">
-                    <div class="label">नाम | Name</div>
-                    <div class="value">${registrationData.childName}</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="label">उमेर | Age</div>
-                    <div class="value">${calculateAge(
-                      registrationData.dateOfBirth
-                    )}</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="label">लिङ्ग | Gender</div>
-                    <div class="value">${
-                      registrationData.gender === "male"
-                        ? "पुरुष | Male"
-                        : "महिला | Female"
-                    }</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="label">दर्ता मिति | Registration Date</div>
-                    <div class="value">${new Date().toLocaleDateString(
-                      "ne-NP"
-                    )}</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="label">अभिभावक | Guardian</div>
-                    <div class="value">${
-                      registrationData.guardianName ||
-                      registrationData.fatherName
-                    }</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="label">ठेगाना | Address</div>
-                    <div class="value">${registrationData.district}, ${
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>स्वर्णबिन्दु प्राशन प्रमाणपत्र</title>
+  <style>
+    @page {
+      size: A5 landscape;
+      margin: 15mm;
+    }
+    body {
+      font-family: 'Noto Sans Devanagari', Arial, sans-serif;
+      background: #fdfdfd;
+      margin: 0;
+      padding: 0;
+    }
+    .certificate {
+      width: 100%;
+      height: 100%;
+      border: 4px solid #d4af37;
+      border-radius: 15px;
+      background: white;
+      padding: 25px 35px;
+      box-sizing: border-box;
+      position: relative;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #d4af37;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+    .header .title {
+      font-size: 26px;
+      font-weight: bold;
+      color: #8b4513;
+    }
+    .header .subtitle {
+      font-size: 15px;
+      color: #555;
+    }
+    .serial {
+      position: absolute;
+      top: 15px;
+      right: 25px;
+      background: #d4af37;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 15px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .qr {
+      position: absolute;
+      top: 20px;
+      left: 25px;
+    }
+    .qr img {
+      width: 70px;
+      height: 70px;
+    }
+    .info {
+      margin: 20px 0;
+    }
+    .info h3 {
+      color: #d4af37;
+      font-size: 18px;
+      margin-bottom: 10px;
+      border-left: 4px solid #d4af37;
+      padding-left: 8px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px 25px;
+    }
+    .info-item {
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .label {
+      font-weight: bold;
+      color: #666;
+    }
+    .value {
+      color: #222;
+      font-size: 15px;
+      margin-top: 2px;
+    }
+    .statement {
+      text-align: center;
+      margin: 20px 0;
+      font-size: 16px;
+      color: #333;
+      line-height: 1.6;
+    }
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+      padding: 0 20px;
+    }
+    .sign-box {
+      text-align: center;
+      width: 40%;
+    }
+    .sign-line {
+      border-top: 2px solid #333;
+      margin: 40px auto 8px auto;
+      width: 100%;
+    }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #777;
+      margin-top: 25px;
+      border-top: 1px solid #eee;
+      padding-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="certificate">
+    <div class="serial">#${serialNumber}</div>
+    <div class="qr">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${
+        registrationData.id
+      }" />
+    </div>
+    <div class="header">
+      <div class="title">स्वर्णबिन्दु प्राशन प्रमाणपत्र</div>
+      <div class="subtitle">Swarnabindu Prashana Certificate</div>
+    </div>
+
+    <div class="info">
+      <h3>बिरामीको विवरण | Patient Details</h3>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="label">नाम | Name</div>
+          <div class="value">${registrationData.childName}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">उमेर | Age</div>
+          <div class="value">${calculateAge(registrationData.dateOfBirth)}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">लिङ्ग | Gender</div>
+          <div class="value">${
+            registrationData.gender === "male"
+              ? "पुरुष | Male"
+              : "महिला | Female"
+          }</div>
+        </div>
+        <div class="info-item">
+          <div class="label">दर्ता मिति | Registration Date</div>
+          <div class="value">${new Date().toLocaleDateString("ne-NP")}</div>
+        </div>
+        <div class="info-item">
+          <div class="label">अभिभावक | Guardian</div>
+          <div class="value">${
+            registrationData.guardianName || registrationData.fatherName
+          }</div>
+        </div>
+        <div class="info-item">
+          <div class="label">ठेगाना | Address</div>
+          <div class="value">${registrationData.district}, ${
       registrationData.palika
     }-${registrationData.ward}</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div style="text-align: center; margin: 30px 0;">
-                <p style="font-size: 18px; color: #333;">
-                  यो प्रमाणित गरिन्छ कि माथि उल्लेखित बालक/बालिकालाई स्वर्णबिन्दु प्राशन कार्यक्रम अन्तर्गत 
-                  सफलतापूर्वक दर्ता गरिएको छ।
-                </p>
-                <p style="font-size: 16px; color: #666; margin-top: 20px;">
-                  This certifies that the above mentioned child has been successfully registered 
-                  under the Swarnabindu Prashana Program.
-                </p>
-              </div>
-              
-              <div style="display: flex; justify-content: space-between; margin-top: 40px;">
-                <div style="text-align: center;">
-                  <div style="border-top: 2px solid #333; width: 200px; margin: 20px 0 10px 0;"></div>
-                  <div style="font-weight: bold;">प्राधिकृत हस्ताक्षर</div>
-                  <div style="font-size: 12px; color: #666;">Authorized Signature</div>
-                </div>
-                <div style="text-align: center;">
-                  <div style="border-top: 2px solid #333; width: 200px; margin: 20px 0 10px 0;"></div>
-                  <div style="font-weight: bold;">मिति</div>
-                  <div style="font-size: 12px; color: #666;">Date</div>
-                </div>
-              </div>
-            </div>
-            <div class="footer">
-              <p>स्वर्णबिन्दु प्राशन कार्यक्रम व्यवस्थापन प्रणाली | Swarnabindu Prashana Program Management System</p>
-              <p>नेपाल सरकार, स्वास्थ्य तथा जनसंख्या मन्त्रालय | Government of Nepal, Ministry of Health and Population</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
+        </div>
+      </div>
+    </div>
+
+    <div class="statement">
+      यो प्रमाणित गरिन्छ कि माथि उल्लेखित बालक/बालिकालाई <br/>
+      <strong>स्वर्णबिन्दु प्राशन कार्यक्रम</strong> अन्तर्गत सफलतापूर्वक दर्ता गरिएको छ।<br/>
+      <small>This certifies that the above mentioned child has been successfully registered under the Swarnabindu Prashana Program.</small>
+    </div>
+
+    <div class="signatures">
+      <div class="sign-box">
+        <div class="sign-line"></div>
+        <div>प्राधिकृत हस्ताक्षर</div>
+        <div style="font-size: 11px; color: #666;">Authorized Signature</div>
+      </div>
+      <div class="sign-box">
+        <div class="sign-line"></div>
+        <div>मिति</div>
+        <div style="font-size: 11px; color: #666;">Date</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      स्वर्णबिन्दु प्राशन कार्यक्रम व्यवस्थापन प्रणाली | Swarnabindu Prashana Program Management System <br/>
+      नेपाल सरकार, स्वास्थ्य तथा जनसंख्या मन्त्रालय | Government of Nepal, Ministry of Health and Population
+    </div>
+  </div>
+</body>
+</html>
+`;
 
     const printWindow = window.open("", "_blank");
     if (printWindow) {

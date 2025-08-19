@@ -76,6 +76,16 @@ export function RegistrationStep1({
   //   "Laxmi",
   // ];
 
+  // Preselect first common location on mount
+  useEffect(() => {
+    if (!data.district) {
+      const [firstDistrict, firstPalika] = Object.entries(
+        DISTRICTS_WITH_PALIKA
+      )[0];
+      onUpdate({ district: firstDistrict, palika: firstPalika });
+    }
+  }, []);
+
   useEffect(() => {
     if (data.dateOfBirth) {
       calculateAge(data.dateOfBirth);
@@ -112,17 +122,18 @@ export function RegistrationStep1({
     const newErrors: Record<string, string> = {};
 
     if (!data.childName.trim()) newErrors.childName = "बालकको नाम आवश्यक छ";
-    if (!data.dateOfBirth) newErrors.dateOfBirth = "जन्म मिति आवश्यक छ";
+    // if (!data.dateOfBirth) newErrors.dateOfBirth = "जन्म मिति आवश्यक छ";
     if (!data.gender) newErrors.gender = "लिङ्ग छान्नुहोस्";
-    if (!data.contactNumber.trim())
-      newErrors.contactNumber = "सम्पर्क नम्बर आवश्यक छ";
-    if (data.contactNumber && !/^[0-9]{10}$/.test(data.contactNumber)) {
-      newErrors.contactNumber = "१० अंकको मोबाइल नम्बर चाहिन्छ";
-    }
+    if (!data.dateOfBirth) newErrors.dateOfBirth = " छान्नुहोस्";
+    // if (!data.contactNumber.trim())
+    //   newErrors.contactNumber = "सम्पर्क नम्बर आवश्यक छ";
+    // if (data.contactNumber && !/^[0-9]{10}$/.test(data.contactNumber)) {
+    //   newErrors.contactNumber = "१० अंकको मोबाइल नम्बर चाहिन्छ";
+    // }
 
-    if (ageInfo && !ageInfo.eligible) {
-      newErrors.dateOfBirth = "६ महिनादेखि ५ वर्षसम्मका बालबालिकाका लागि मात्र";
-    }
+    // if (ageInfo && !ageInfo.eligible) {
+    //   newErrors.dateOfBirth = "६ महिनादेखि ५ वर्षसम्मका बालबालिकाका लागि मात्र";
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -171,46 +182,60 @@ export function RegistrationStep1({
         </div>
 
         {/* Location */}
-        <div className="space-y-2">
-          <Label>सामान्य स्थानहरू | Common Locations</Label>
-          <div className="grid grid-cols-2 gap-2">
+        {/* Location Card */}
+        <div className="bg-white rounded-xl shadow-md border border-blue-100 p-6 mb-6">
+          <div className="mb-4">
+            <Label className="text-lg font-semibold text-blue-700">
+              📍 सामान्य स्थानहरू | Common Locations
+            </Label>
+            <p className="text-sm text-gray-500 mt-1">
+              कृपया आफ्नो जिल्ला र पालिका छान्नुहोस्।
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mb-4">
             {Object.entries(DISTRICTS_WITH_PALIKA).map(([district, palika]) => (
               <Button
                 key={district}
                 type="button"
                 variant={data.district === district ? "default" : "outline"}
                 onClick={() => onUpdate({ district, palika })}
-                className="flex-1"
+                className={`flex-1 transition-all duration-150 ${
+                  data.district === district
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                }`}
               >
                 {district}
               </Button>
             ))}
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          {/* District Field */}
-          <div className="space-y-2">
-            <Label htmlFor="district">जिल्ला *</Label>
-            <input
-              id="district"
-              value={data.district || ""}
-              readOnly
-              className="w-full rounded-md px-3 py-2 border border-gray-300 bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="जिल्ला स्वतः भर्नेछ"
-            />
-          </div>
-
-          {/* Palika Field */}
-          <div className="space-y-2">
-            <Label htmlFor="palika">पालिका *</Label>
-            <input
-              id="palika"
-              value={data.palika || ""}
-              readOnly
-              className="w-full rounded-md px-3 py-2 border border-gray-300 bg-gray-100 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              placeholder="पालिका स्वतः भर्नेछ"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* District Field */}
+            <div className="space-y-2">
+              <Label htmlFor="district" className="font-medium text-blue-700">
+                जिल्ला *
+              </Label>
+              <input
+                id="district"
+                value={data.district || ""}
+                readOnly
+                className="w-full rounded-md px-3 py-2 border border-blue-200 bg-blue-50 text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="जिल्ला स्वतः भर्नेछ"
+              />
+            </div>
+            {/* Palika Field */}
+            <div className="space-y-2">
+              <Label htmlFor="palika" className="font-medium text-blue-700">
+                पालिका *
+              </Label>
+              <input
+                id="palika"
+                value={data.palika || ""}
+                readOnly
+                className="w-full rounded-md px-3 py-2 border border-blue-200 bg-blue-50 text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                placeholder="पालिका स्वतः भर्नेछ"
+              />
+            </div>
           </div>
         </div>
 
@@ -290,6 +315,7 @@ export function RegistrationStep1({
             max={new Date().toISOString().split("T")[0]}
             className={inputClass(data.dateOfBirth, errors.dateofBirth)}
           />
+
           {ageInfo && (
             <div
               className={`p-3 rounded-lg ${
@@ -315,7 +341,7 @@ export function RegistrationStep1({
                   variant={ageInfo.eligible ? "default" : "destructive"}
                   className="ml-auto"
                 >
-                  {ageInfo.eligible ? "योग्य" : "अयोग्य"}
+                  {ageInfo.eligible ? "योग्य" : ""}
                 </Badge>
               </div>
               {!ageInfo.eligible && (
@@ -464,15 +490,15 @@ export function RegistrationStep1({
         </div>
 
         {/* Eligibility Alert */}
-        {ageInfo && !ageInfo.eligible && (
+        {/* {ageInfo && !ageInfo.eligible && (
           <Alert className="border-red-200 bg-red-50">
             <AlertCircle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800">
-              <strong>अयोग्य:</strong> स्वर्णबिन्दु प्राशन कार्यक्रम ६ महिनादेखि
-              ५ वर्षसम्मका बालबालिकाका लागि मात्र हो।
+              स्वर्णबिन्दु प्राशन कार्यक्रम ६ महिनादेखि ५ वर्षसम्मका बालबालिकाका
+              लागि मात्र हो।
             </AlertDescription>
           </Alert>
-        )}
+        )} */}
 
         {/* Next Button */}
         <div className="flex justify-end pt-4">

@@ -109,16 +109,23 @@ export function SyncManager() {
       );
       setSyncProgress(25);
 
-      const response = await fetch("/api/sync", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          registrations: pendingRegistrations.map((r) => r.data),
-          screenings: pendingScreenings.map((s) => s.data),
-        }),
-      });
+      const token = localStorage.getItem("authToken"); // Get token from login
+
+      const response = await fetch(
+        "https://health-service.gyanbazzar.com/registrations",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+          body: JSON.stringify({
+            registrations: pendingRegistrations.map((r) => r.data),
+            // screenings: pendingScreenings.map((s) => s.data),
+          }),
+        }
+      );
 
       setSyncProgress(75);
 
