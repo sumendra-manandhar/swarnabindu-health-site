@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -12,10 +18,18 @@ import {
   Home,
   FileText,
   Calendar,
+  ArrowLeft,
+  User,
+  Phone,
+  MapPin,
+  History,
 } from "lucide-react";
 import Link from "next/link";
 import { OfflineStorage } from "@/lib/offline-storage";
 import { ApiService } from "@/lib/api-service";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 // import { DatabaseService } from "@/lib/supabase";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -426,137 +440,430 @@ export function RegistrationSuccess({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl">
-        <CardHeader className="text-center bg-gradient-to-r from-green-600 to-emerald-600 text-white">
-          <div className="mx-auto mb-4 w-16 h-16 bg-white rounded-full flex items-center justify-center">
-            <CheckCircle className="h-10 w-10 text-green-600" />
-          </div>
-          <CardTitle className="text-2xl">दर्ता सफल भयो!</CardTitle>
-          <p className="text-green-100">Registration Successful!</p>
-        </CardHeader>
+    // <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center p-4">
+    //   <Card className="w-full max-w-2xl">
+    //     <CardHeader className="text-center bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+    //       <div className="mx-auto mb-4 w-16 h-16 bg-white rounded-full flex items-center justify-center">
+    //         <CheckCircle className="h-10 w-10 text-green-600" />
+    //       </div>
+    //       <CardTitle className="text-2xl">दर्ता सफल भयो!</CardTitle>
+    //       <p className="text-green-100">Registration Successful!</p>
+    //     </CardHeader>
 
-        <CardContent className="p-8">
-          {/* Success Message */}
-          <div className="text-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              {registrationData.childName} को दर्ता सम्पन्न भयो
-            </h2>
-            <p className="text-gray-600">
-              स्वर्णबिन्दु प्राशन कार्यक्रममा सफलतापूर्वक दर्ता गरिएको छ।
-            </p>
-          </div>
+    //     <CardContent className="p-8">
+    //       {/* Success Message */}
+    //       <div className="text-center mb-6">
+    //         <h2 className="text-xl font-semibold text-gray-900 mb-2">
+    //           {registrationData.childName} को दर्ता सम्पन्न भयो
+    //         </h2>
+    //         <p className="text-gray-600">
+    //           स्वर्णबिन्दु प्राशन कार्यक्रममा सफलतापूर्वक दर्ता गरिएको छ।
+    //         </p>
+    //       </div>
 
-          {/* Registration Details */}
-          <Card className="border-green-200 bg-green-50 mb-6">
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
+    //       {/* Registration Details */}
+    //       <Card className="border-green-200 bg-green-50 mb-6">
+    //         <CardContent className="p-4">
+    //           <div className="grid grid-cols-2 gap-4 text-sm">
+    //             <div>
+    //               <span className="font-medium text-green-800">
+    //                 दर्ता नम्बर:
+    //               </span>
+    //               <p className="font-mono text-green-900">#{serialNumber}</p>
+    //             </div>
+    //             <div>
+    //               <span className="font-medium text-green-800">मिति:</span>
+    //               <p className="text-green-900">
+    //                 {new Date().toLocaleDateString("ne-NP")}
+    //               </p>
+    //             </div>
+    //             <div>
+    //               <span className="font-medium text-green-800">उमेर:</span>
+    //               <p className="text-green-900">
+    //                 {calculateAge(registrationData.dateOfBirth)}
+    //               </p>
+    //             </div>
+    //             <div>
+    //               <span className="font-medium text-green-800">मात्रा:</span>
+    //               <p className="text-green-900">
+    //                 {registrationData.doseAmount} थोपा
+    //               </p>
+    //             </div>
+    //           </div>
+    //         </CardContent>
+    //       </Card>
+
+    //       {/* Status Badge */}
+    //       <div className="flex justify-center mb-6">
+    //         <Badge
+    //           variant={isOnline ? "default" : "secondary"}
+    //           className="px-4 py-2"
+    //         >
+    //           {isOnline
+    //             ? "Online - Database मा सेभ भयो"
+    //             : "Offline - स्थानीय रूपमा सेभ भयो"}
+    //         </Badge>
+    //       </div>
+
+    //       <Separator className="my-6" />
+
+    //       {/* Action Buttons */}
+    //       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    //         <Button
+    //           onClick={generateCertificate}
+    //           className="flex items-center gap-2 bg-transparent"
+    //           variant="outline"
+    //         >
+    //           <Download className="h-4 w-4" />
+    //           प्रमाणपत्र डाउनलोड
+    //         </Button>
+
+    //         <Button
+    //           onClick={onNewRegistration}
+    //           className="flex items-center gap-2"
+    //         >
+    //           <UserPlus className="h-4 w-4" />
+    //           नयाँ दर्ता
+    //         </Button>
+    //       </div>
+
+    //       {/* Navigation */}
+    //       <div className="flex justify-center gap-4">
+    //         <Link href="/">
+    //           <Button
+    //             variant="outline"
+    //             className="flex items-center gap-2 bg-transparent"
+    //           >
+    //             <Home className="h-4 w-4" />
+    //             होम पेज
+    //           </Button>
+    //         </Link>
+
+    //         <Link href="/screening">
+    //           <Button
+    //             variant="outline"
+    //             className="flex items-center gap-2 bg-transparent"
+    //           >
+    //             <Calendar className="h-4 w-4" />
+    //             स्क्रिनिङ
+    //           </Button>
+    //         </Link>
+
+    //         <Link href="/reports">
+    //           <Button
+    //             variant="outline"
+    //             className="flex items-center gap-2 bg-transparent"
+    //           >
+    //             <FileText className="h-4 w-4" />
+    //             रिपोर्ट
+    //           </Button>
+    //         </Link>
+    //       </div>
+
+    //       {/* Certificate Status */}
+    //       {certificateGenerated && (
+    //         <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
+    //           <CheckCircle className="h-5 w-5 text-blue-600 mx-auto mb-2" />
+    //           <p className="text-blue-800 text-sm">
+    //             प्रमाणपत्र सफलतापूर्वक जेनेरेट भयो!
+    //           </p>
+    //         </div>
+    //       )}
+    //     </CardContent>
+    //   </Card>
+    // </div>
+
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Link href="/screening">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Search
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-3xl font-bold">नयाँ स्क्रिनिङ | New Screening</h1>
+          <p className="text-muted-foreground">
+            Conduct follow-up screening for patient
+          </p>
+        </div>
+      </div>
+
+      {/* Connection Status */}
+      {!isOnline && (
+        <Alert>
+          <AlertDescription>
+            Youre working offline. Screening data will be saved locally and
+            synced when online.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Patient Information & Dose History */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Patient Info */}
+          <Card className="border-blue-200 bg-blue-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                बिरामीको जानकारी
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {registrationData ? (
+                <>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">
+                      नाम:
+                    </Label>
+                    <p className="text-lg font-semibold">
+                      {registrationData.childName}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">
+                      सिरियल नम्बर:
+                    </Label>
+                    <p className="font-mono">{registrationData.serial_no}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600">
+                        उमेर:
+                      </Label>
+                      <p>{registrationData.age}</p>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-600">
+                        लिङ्ग:
+                      </Label>
+                      <Badge variant="outline">
+                        {/* {getGenderDisplay(registrationData.gender)} */}
+                      </Badge>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">
+                      अभिभावक:
+                    </Label>
+                    <p>
+                      {registrationData.guardianName ||
+                        registrationData.fatherName ||
+                        registrationData.motherName}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span>{registrationData.contactNumber}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                      {registrationData.district}, {registrationData.palika}-
+                      {registrationData.ward}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    {/* <span>दर्ता: {formatDate(registrationData.date)}</span> */}
+                  </div>
+                </>
+              ) : (
                 <div>
-                  <span className="font-medium text-green-800">
-                    दर्ता नम्बर:
-                  </span>
-                  <p className="font-mono text-green-900">#{serialNumber}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-green-800">मिति:</span>
-                  <p className="text-green-900">
-                    {new Date().toLocaleDateString("ne-NP")}
+                  {/* <p className="text-lg font-semibold">{patientName}</p> */}
+                  <p className="text-sm text-muted-foreground">
+                    Patient details not fully loaded
                   </p>
                 </div>
-                <div>
-                  <span className="font-medium text-green-800">उमेर:</span>
-                  <p className="text-green-900">
-                    {calculateAge(registrationData.dateOfBirth)}
-                  </p>
-                </div>
-                <div>
-                  <span className="font-medium text-green-800">मात्रा:</span>
-                  <p className="text-green-900">
-                    {registrationData.doseAmount} थोपा
-                  </p>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* Status Badge */}
-          <div className="flex justify-center mb-6">
-            <Badge
-              variant={isOnline ? "default" : "secondary"}
-              className="px-4 py-2"
-            >
-              {isOnline
-                ? "Online - Database मा सेभ भयो"
-                : "Offline - स्थानीय रूपमा सेभ भयो"}
-            </Badge>
-          </div>
+          {/* Dose History */}
+          <Card className="border-green-200 bg-green-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5" />
+                मात्रा इतिहास | Dose History
+              </CardTitle>
+              <CardDescription>
+                कुल मात्रा: {"doseHistory".length} | Total Doses:{" "}
+                {"doseHistory".length}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Progress Bar */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span>प्रगति | Progress</span>
+                  {/* <span>{Math.round(getDoseProgress())}%</span> */}
+                </div>
+                {/* <Progress value={getDoseProgress()} className="h-2" /> */}
+              </div>
 
-          <Separator className="my-6" />
+              {/* Dose History List */}
+              {/* <div className="space-y-3 max-h-64 overflow-y-auto">
+                {doseHistory.length > 0 ? (
+                  doseHistory.map((dose, index) => (
+                    <div
+                      key={dose.id}
+                      className="p-3 bg-white rounded-lg border border-green-200"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge variant="outline" className="text-xs">
+                          मात्रा #{doseHistory.length - index}
+                        </Badge>
+                        <span className="text-xs text-gray-600">
+                          {formatDate(dose.date)}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="font-medium">मात्रा:</span>
+                          <div className="flex items-center gap-1 mt-1">
+                            {Array.from(
+                              {
+                                length: Number.parseInt(dose.dose_amount) || 1,
+                              },
+                              (_, i) => (
+                                <div
+                                  key={i}
+                                  className="w-2 h-2 bg-blue-500 rounded-full"
+                                ></div>
+                              )
+                            )}
+                            <span className="ml-1">
+                              {dose.dose_amount} थोपा
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <span className="font-medium">प्रतिक्रिया:</span>
+                          <div className="mt-1">
+                            {getReactionBadge(dose.reaction)}
+                          </div>
+                        </div>
+                      </div>
+                      {dose.notes && (
+                        <p className="text-xs text-gray-600 mt-2 italic">
+                          {dose.notes}
+                        </p>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-6 text-gray-500">
+                    <Droplets className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                    <p className="text-sm">कुनै मात्रा इतिहास छैन</p>
+                    <p className="text-xs">No dose history found</p>
+                  </div>
+                )}
+              </div> */}
 
-          {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <Button
-              onClick={generateCertificate}
-              className="flex items-center gap-2 bg-transparent"
-              variant="outline"
-            >
-              <Download className="h-4 w-4" />
-              प्रमाणपत्र डाउनलोड
-            </Button>
+              {/* Stats */}
+              {/* {doseHistory.length > 0 && (
+                <div className="pt-3 border-t border-green-200">
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div className="text-center">
+                      <TrendingUp className="h-4 w-4 mx-auto mb-1 text-green-600" />
+                      <p className="font-medium">सामान्य प्रतिक्रिया</p>
+                      <p className="text-green-700">
+                        {
+                          doseHistory.filter((d) => d.reaction === "normal")
+                            .length
+                        }
+                        /{doseHistory.length}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <Calendar className="h-4 w-4 mx-auto mb-1 text-blue-600" />
+                      <p className="font-medium">अन्तिम मात्रा</p>
+                      <p className="text-blue-700">
+                        {doseHistory.length > 0
+                          ? formatDate(doseHistory[0].date)
+                          : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )} */}
+            </CardContent>
+          </Card>
+        </div>
 
-            <Button
-              onClick={onNewRegistration}
-              className="flex items-center gap-2"
-            >
-              <UserPlus className="h-4 w-4" />
-              नयाँ दर्ता
-            </Button>
-          </div>
+        {/* Screening Form */}
+        <div className="lg:col-span-2">
+          <form>
+            <Card>
+              <CardHeader>
+                <CardTitle>स्क्रिनिङ फारम | Screening Form</CardTitle>
+                <CardDescription>Fill in the screening details</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Basic Screening Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* <div>
+                    <Label>स्क्रिनिङ मिति *</Label>
+                    <Input
+                      id="screening_date"
+                      type="date"
+                      // value={"screeningData".screening_date}
+                      onChange={(e) =>
+                        // handleInputChange("screening_date", e.target.value)
+                      }
+                      required
+                    />
+                  </div> */}
+                  <div>
+                    <Label htmlFor="screening_type">स्क्रिनिङ प्रकार *</Label>
+                    {/* <Select
+                      value={screeningData.screening_type}
+                      onValueChange={(value) =>
+                        handleInputChange("screening_type", value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="follow_up">Follow-up</SelectItem>
+                        <SelectItem value="routine">Routine Check</SelectItem>
+                        <SelectItem value="emergency">Emergency</SelectItem>
+                      </SelectContent>
+                    </Select> */}
+                  </div>
+                </div>
 
-          {/* Navigation */}
-          <div className="flex justify-center gap-4">
-            <Link href="/">
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 bg-transparent"
-              >
-                <Home className="h-4 w-4" />
-                होम पेज
-              </Button>
-            </Link>
+                <Separator />
 
-            <Link href="/screening">
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 bg-transparent"
-              >
-                <Calendar className="h-4 w-4" />
-                स्क्रिनिङ
-              </Button>
-            </Link>
+                {/* Dose Information */}
+              </CardContent>
+            </Card>
+          </form>
+        </div>
+      </div>
 
-            <Link href="/reports">
-              <Button
-                variant="outline"
-                className="flex items-center gap-2 bg-transparent"
-              >
-                <FileText className="h-4 w-4" />
-                रिपोर्ट
-              </Button>
-            </Link>
-          </div>
-
-          {/* Certificate Status */}
-          {certificateGenerated && (
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
-              <CheckCircle className="h-5 w-5 text-blue-600 mx-auto mb-2" />
-              <p className="text-blue-800 text-sm">
-                प्रमाणपत्र सफलतापूर्वक जेनेरेट भयो!
-              </p>
-            </div>
-          )}
+      {/* Safety Guidelines */}
+      {/* <Card className="border-yellow-200 bg-yellow-50">
+        <CardContent className="p-6">
+          <h3 className="font-semibold text-yellow-800 mb-3 flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
+            सुरक्षा निर्देशनहरू:
+          </h3>
+          <ul className="text-sm text-yellow-700 space-y-1">
+            <li>
+              • स्वर्णप्राशन दिनु अघि बच्चाको स्वास्थ्य अवस्था जाँच गर्नुहोस्
+            </li>
+            <li>• सही मात्रा र समयको पालना गर्नुहोस्</li>
+            <li>• कुनै प्रतिकूल प्रतिक्रिया देखिएमा तुरुन्त रोक्नुहोस्</li>
+            <li>• सबै जानकारी सही र पूर्ण रूपमा भर्नुहोस्</li>
+            <li>• अर्को मात्रा पुष्य नक्षत्रमा मात्र दिनुहोस्</li>
+          </ul>
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }

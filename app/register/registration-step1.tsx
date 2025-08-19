@@ -162,351 +162,280 @@ export function RegistrationStep1({
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-        <CardTitle className="flex items-center gap-2">
+    <Card className="w-full max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-xl">
+      {/* Header */}
+      <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-4">
+        <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
           <User className="h-5 w-5" />
-          बालकको आधारभूत जानकारी | Childs Basic Information
+          बालकको आधारभूत जानकारी | Child & Guardian Information
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-6 space-y-6">
+
+      <CardContent className="space-y-6">
         {/* Quick Stats */}
-        <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+        <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-md shadow-sm text-sm">
           <Zap className="h-4 w-4 text-blue-600" />
-          <span className="text-sm font-medium text-blue-800">
+          <span className="font-medium text-blue-800">
             द्रुत दर्ता | Quick Registration
           </span>
-          <Badge variant="secondary" className="ml-auto">
+          <Badge variant="secondary" className="ml-auto text-xs">
             Step 1/3
           </Badge>
         </div>
 
-        {/* Location */}
-        {/* Location Card */}
-        <div className="bg-white rounded-xl shadow-md border border-blue-100 p-6 mb-6">
-          <div className="mb-4">
-            <Label className="text-lg font-semibold text-blue-700">
-              📍 सामान्य स्थानहरू | Common Locations
-            </Label>
-            <p className="text-sm text-gray-500 mt-1">
-              कृपया आफ्नो जिल्ला र पालिका छान्नुहोस्।
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            {Object.entries(DISTRICTS_WITH_PALIKA).map(([district, palika]) => (
-              <Button
-                key={district}
-                type="button"
-                variant={data.district === district ? "default" : "outline"}
-                onClick={() => onUpdate({ district, palika })}
-                className={`flex-1 transition-all duration-150 ${
-                  data.district === district
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
-                }`}
-              >
-                {district}
-              </Button>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* District Field */}
-            <div className="space-y-2">
-              <Label htmlFor="district" className="font-medium text-blue-700">
-                जिल्ला *
-              </Label>
-              <input
-                id="district"
-                value={data.district || ""}
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left Column: Child Info */}
+          <div className="p-4 bg-white border border-blue-100 space-y-4">
+            {/* District / Palika */}
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                value={data.district}
                 readOnly
-                className="w-full rounded-md px-3 py-2 border border-blue-200 bg-blue-50 text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 placeholder="जिल्ला स्वतः भर्नेछ"
+                className="text-sm px-2 py-1 max-w-xs bg-gray-200"
               />
-            </div>
-            {/* Palika Field */}
-            <div className="space-y-2">
-              <Label htmlFor="palika" className="font-medium text-blue-700">
-                पालिका *
-              </Label>
-              <input
-                id="palika"
-                value={data.palika || ""}
+              <Input
+                value={data.palika}
                 readOnly
-                className="w-full rounded-md px-3 py-2 border border-blue-200 bg-blue-50 text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 placeholder="पालिका स्वतः भर्नेछ"
+                className="text-sm px-2 py-1 max-w-xs  bg-gray-200"
               />
             </div>
-          </div>
-        </div>
+            <h3 className="text-blue-700 font-semibold text-sm">
+              बालक विवरण | Child Info
+            </h3>
 
-        {/* Gender Selection */}
-        <div className="space-y-2">
-          <Label>लिङ्ग *</Label>
-          <div className="flex gap-4">
-            <Button
-              type="button"
-              variant={data.gender === "male" ? "default" : "outline"}
-              onClick={() => onUpdate({ gender: "male" })}
-              className="flex-1"
-            >
-              पुरुष | Male
-            </Button>
-            <Button
-              type="button"
-              variant={data.gender === "female" ? "default" : "outline"}
-              onClick={() => onUpdate({ gender: "female" })}
-              className="flex-1"
-            >
-              महिला | Female
-            </Button>
-          </div>
-          {errors.gender && (
-            <p className="text-red-500 text-sm flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              {errors.gender}
-            </p>
-          )}
-        </div>
-
-        {/* Child Name with Quick Fill */}
-        <div className="space-y-2">
-          <Label htmlFor="childName">बालकको पूरा नाम *</Label>
-          <Input
-            id="childName"
-            value={data.childName}
-            onChange={(e) => onUpdate({ childName: e.target.value })}
-            placeholder="बालकको नाम लेख्नुहोस्"
-            className={inputClass(data.childName, errors.childName)}
-          />
-          {data.gender && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              <span className="text-xs text-gray-600">सुझाव:</span>
-              {commonNames[data.gender as keyof typeof commonNames]
-                ?.slice(0, 4)
-                .map((name) => (
-                  <Button
-                    key={name}
-                    variant="outline"
-                    size="sm"
-                    className="h-6 text-xs bg-transparent"
-                    onClick={() => quickFillName(name)}
-                  >
-                    {name}
-                  </Button>
-                ))}
-            </div>
-          )}
-          {errors.childName && (
-            <p className="text-red-500 text-sm flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              {errors.childName}
-            </p>
-          )}
-        </div>
-
-        {/* Date of Birth with Age Calculation */}
-        <div className="space-y-2">
-          <Label htmlFor="dateOfBirth">जन्म मिति *</Label>
-          <Input
-            id="dateOfBirth"
-            type="date"
-            value={data.dateOfBirth}
-            onChange={(e) => onUpdate({ dateOfBirth: e.target.value })}
-            max={new Date().toISOString().split("T")[0]}
-            className={inputClass(data.dateOfBirth, errors.dateofBirth)}
-          />
-
-          {ageInfo && (
-            <div
-              className={`p-3 rounded-lg ${
-                ageInfo.eligible
-                  ? "bg-green-50 border border-green-200"
-                  : "bg-red-50 border border-red-200"
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Calendar
-                  className={`h-4 w-4 ${
-                    ageInfo.eligible ? "text-green-600" : "text-red-600"
-                  }`}
-                />
-                <span
-                  className={`text-sm font-medium ${
-                    ageInfo.eligible ? "text-green-800" : "text-red-800"
-                  }`}
+            {/* Gender */}
+            <div className="space-y-1">
+              <Label className="text-sm">लिङ्ग *</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={data.gender === "male" ? "default" : "outline"}
+                  onClick={() => onUpdate({ gender: "male" })}
+                  className="flex-1 text-sm py-1"
                 >
-                  उमेर: {ageInfo.years} वर्ष {ageInfo.months} महिना
-                </span>
-                <Badge
-                  variant={ageInfo.eligible ? "default" : "destructive"}
-                  className="ml-auto"
+                  पुरुष | Male
+                </Button>
+                <Button
+                  type="button"
+                  variant={data.gender === "female" ? "default" : "outline"}
+                  onClick={() => onUpdate({ gender: "female" })}
+                  className="flex-1 text-sm py-1"
                 >
-                  {ageInfo.eligible ? "योग्य" : ""}
-                </Badge>
+                  महिला | Female
+                </Button>
               </div>
-              {!ageInfo.eligible && (
-                <p className="text-red-700 text-xs mt-1">
-                  स्वर्णबिन्दु प्राशन ६ महिनादेखि ५ वर्षसम्मका बालबालिकाका लागि
-                  मात्र हो।
+            </div>
+            {/* Child Name */}
+            <div className="space-y-1">
+              <Label htmlFor="childName" className="text-sm">
+                बालकको पूरा नाम *
+              </Label>
+              <Input
+                id="childName"
+                value={data.childName}
+                onChange={(e) => onUpdate({ childName: e.target.value })}
+                placeholder="बालकको नाम लेख्नुहोस्"
+                className="text-sm px-2 py-1"
+              />
+              {data.gender && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {commonNames[data.gender as keyof typeof commonNames]
+                    ?.slice(0, 4)
+                    .map((name) => (
+                      <Button
+                        key={name}
+                        variant="outline"
+                        size="sm"
+                        className="h-6 text-xs px-1 py-0"
+                        onClick={() => quickFillName(name)}
+                      >
+                        {name}
+                      </Button>
+                    ))}
+                </div>
+              )}
+              {errors.childName && (
+                <p className="text-red-500 text-sm flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.childName}
                 </p>
               )}
             </div>
-          )}
-          {errors.dateOfBirth && (
-            <p className="text-red-500 text-sm flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              {errors.dateOfBirth}
-            </p>
-          )}
-        </div>
 
-        {/* Parents Information with Quick Fill */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Father Info */}
-          <div className="space-y-3 p-4 border rounded-lg shadow-sm bg-white">
-            <Label htmlFor="fatherName" className="font-medium">
-              बुबाको नाम
-            </Label>
-            <Input
-              id="fatherName"
-              value={data.fatherName}
-              onChange={(e) =>
-                onUpdate({
-                  fatherName: e.target.value,
-                  guardianName: e.target.value,
-                })
-              }
-              placeholder={
-                childSurname
-                  ? `बुबाको नाम (e.g.  ${childSurname})`
-                  : "बुबाको नाम"
-              }
-              list="father-suggestions"
-              className={inputClass(data.fatherName, errors.fatherName)}
-            />
+            {/* Date of Birth */}
+            {/* <div className="space-y-1">
+              <Label htmlFor="dateOfBirth" className="text-sm">
+                जन्म मिति *
+              </Label>
+              <Input
+                id="dateOfBirth"
+                type="date"
+                value={data.dateOfBirth}
+                onChange={(e) => onUpdate({ dateOfBirth: e.target.value })}
+                max={new Date().toISOString().split("T")[0]}
+                className="text-sm px-2 py-1"
+              />
 
-            {/* Surname autocomplete */}
-            {childSurname && data.fatherName && (
-              <datalist id="father-suggestions">
-                {(() => {
-                  const words = data.fatherName.trim().split(" ");
-                  const lastWord = words[words.length - 1];
-                  if (lastWord.toLowerCase() !== childSurname.toLowerCase()) {
-                    return (
-                      <option
-                        value={`${data.fatherName.trim()} ${childSurname}`}
-                      />
-                    );
-                  }
-                  return null;
-                })()}
-              </datalist>
-            )}
+              {ageInfo && (
+                <span className="text-xs text-gray-600">
+                  उमेर: {ageInfo.years} वर्ष {ageInfo.months} महिना
+                </span>
+              )}
+            </div> */}
 
-            {/* Occupation input */}
-            {data.fatherName.trim() && (
-              <div className="mt-2">
-                <Label
-                  htmlFor="fatherOccupation"
-                  className="text-sm text-gray-600"
+            <div className="space-y-1">
+              <Label htmlFor="dateOfBirth" className="text-sm">
+                जन्म मिति *
+              </Label>
+              <Input
+                id="dateOfBirth"
+                type="date"
+                value={data.dateOfBirth}
+                onChange={(e) => onUpdate({ dateOfBirth: e.target.value })}
+                max={new Date().toISOString().split("T")[0]}
+                className="text-sm px-2 py-1"
+              />
+
+              {/* ✅ Eligibility Card */}
+              {ageInfo && (
+                <div
+                  className={`p-3 rounded-lg mt-2 ${
+                    ageInfo.eligible
+                      ? "bg-green-50 border border-green-200"
+                      : "bg-red-50 border border-red-200"
+                  }`}
                 >
-                  बुबाको पेशा
-                </Label>
+                  <div className="flex items-center gap-2">
+                    <Calendar
+                      className={`h-4 w-4 ${
+                        ageInfo.eligible ? "text-green-600" : "text-red-600"
+                      }`}
+                    />
+                    <span
+                      className={`text-sm font-medium ${
+                        ageInfo.eligible ? "text-green-800" : "text-red-800"
+                      }`}
+                    >
+                      उमेर: {ageInfo.years} वर्ष {ageInfo.months} महिना
+                    </span>
+                    <Badge
+                      variant={ageInfo.eligible ? "default" : "destructive"}
+                      className="ml-auto"
+                    >
+                      {ageInfo.eligible ? "योग्य" : "अयोग्य"}
+                    </Badge>
+                  </div>
+                  {!ageInfo.eligible && (
+                    <p className="text-red-700 text-xs mt-1">
+                      स्वर्णबिन्दु प्राशन ६ महिनादेखि ५ वर्षसम्मका बालबालिकाका
+                      लागि मात्र हो।
+                    </p>
+                  )}
+                </div>
+              )}
+              {errors.dateOfBirth && (
+                <p className="text-red-500 text-sm flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.dateOfBirth}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Guardian Info */}
+          <div className="p-4   shadow-sm space-y-4">
+            <h3 className="text-blue-700 font-semibold text-sm">
+              अभिभावक विवरण | Guardian Info
+            </h3>
+
+            {/* Father */}
+            <div className="space-y-1">
+              <Label className="text-sm">बुबाको नाम</Label>
+              <Input
+                id="fatherName"
+                value={data.fatherName}
+                onChange={(e) =>
+                  onUpdate({
+                    fatherName: e.target.value,
+                    guardianName: e.target.value,
+                  })
+                }
+                placeholder={
+                  childSurname
+                    ? `बुबाको नाम (e.g. ${childSurname})`
+                    : "बुबाको नाम"
+                }
+                className="text-sm px-2 py-1"
+              />
+              {data.fatherName.trim() && (
                 <Input
                   id="fatherOccupation"
                   value={data.fatherOccupation || ""}
                   onChange={(e) =>
                     onUpdate({ fatherOccupation: e.target.value })
                   }
-                  placeholder="पेशा लेख्नुहोस्"
-                  className="mt-1"
+                  placeholder="बुबाको पेशा"
+                  className="text-sm px-2 py-1 mt-1"
                 />
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Mother Info */}
-          <div className="space-y-3 p-4 border rounded-lg shadow-sm bg-white">
-            <Label htmlFor="motherName" className="font-medium">
-              आमाको नाम
-            </Label>
-            <Input
-              id="motherName"
-              value={data.motherName}
-              onChange={(e) => onUpdate({ motherName: e.target.value })}
-              placeholder="आमाको नाम"
-            />
-
-            {/* Occupation input */}
-            {data.motherName.trim() && (
-              <div className="mt-2">
-                <Label
-                  htmlFor="motherOccupation"
-                  className="text-sm text-gray-600"
-                >
-                  आमाको पेशा
-                </Label>
+            {/* Mother */}
+            <div className="space-y-1">
+              <Label className="text-sm">आमाको नाम</Label>
+              <Input
+                id="motherName"
+                value={data.motherName}
+                onChange={(e) => onUpdate({ motherName: e.target.value })}
+                placeholder="आमाको नाम"
+                className="text-sm px-2 py-1"
+              />
+              {data.motherName.trim() && (
                 <Input
                   id="motherOccupation"
                   value={data.motherOccupation || ""}
                   onChange={(e) =>
                     onUpdate({ motherOccupation: e.target.value })
                   }
-                  placeholder="पेशा लेख्नुहोस्"
-                  className="mt-1"
+                  placeholder="आमाको पेशा"
+                  className="text-sm px-2 py-1 mt-1"
+                />
+              )}
+            </div>
+
+            {/* Contact */}
+            <div className="space-y-1">
+              <Label htmlFor="contactNumber" className="text-sm">
+                सम्पर्क नम्बर *
+              </Label>
+              <div className="flex items-center gap-1">
+                <span className="inline-flex items-center px-2 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md">
+                  +977
+                </span>
+                <Input
+                  id="contactNumber"
+                  value={data.contactNumber}
+                  onChange={(e) =>
+                    onUpdate({
+                      contactNumber: e.target.value
+                        .replace(/\D/g, "")
+                        .slice(0, 10),
+                    })
+                  }
+                  placeholder="9800000000"
+                  className="text-sm px-2 py-1 rounded-l-none max-w-xs"
                 />
               </div>
-            )}
+            </div>
           </div>
         </div>
 
-        {/* Contact Number */}
-        <div className="space-y-2">
-          <Label htmlFor="contactNumber">सम्पर्क नम्बर *</Label>
-          <div className="flex">
-            <span className="inline-flex items-center px-3 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md">
-              +977
-            </span>
-            <Input
-              id="contactNumber"
-              value={data.contactNumber}
-              onChange={(e) =>
-                onUpdate({
-                  contactNumber: e.target.value.replace(/\D/g, "").slice(0, 10),
-                })
-              }
-              placeholder="9800000000"
-              className={`rounded-l-none ${
-                errors.contactNumber ? "border-red-500" : ""
-              }`}
-            />
-          </div>
-          {errors.contactNumber && (
-            <p className="text-red-500 text-sm flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              {errors.contactNumber}
-            </p>
-          )}
-        </div>
-
-        {/* Eligibility Alert */}
-        {/* {ageInfo && !ageInfo.eligible && (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
-              स्वर्णबिन्दु प्राशन कार्यक्रम ६ महिनादेखि ५ वर्षसम्मका बालबालिकाका
-              लागि मात्र हो।
-            </AlertDescription>
-          </Alert>
-        )} */}
-
-        {/* Next Button */}
-        <div className="flex justify-end pt-4">
-          <Button
-            onClick={handleNext}
-            // disabled={ageInfo && !ageInfo.eligible}
-            className="px-8"
-          >
+        {/* Next Step Button */}
+        <div className="flex justify-end">
+          <Button onClick={handleNext} className="px-6 py-1 text-sm">
             अर्को चरण | Next Step
           </Button>
         </div>

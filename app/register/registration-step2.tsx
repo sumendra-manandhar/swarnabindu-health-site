@@ -102,61 +102,27 @@ export function RegistrationStep2({
   );
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white">
-        <CardTitle className="flex items-center gap-2">
+    <Card className="w-full max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-xl">
+      {/* Header */}
+      <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl p-4">
+        <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
           <MapPin className="h-5 w-5" />
-          स्वास्थ्य जानकारी |Health Information
+          स्वास्थ्य जानकारी | Health Information
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-6 space-y-6">
+
+      <CardContent className="space-y-6">
         {/* Quick Stats */}
-        <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
+        <div className="flex items-center gap-2 p-2 bg-green-50 rounded-md shadow-sm text-sm">
           <Zap className="h-4 w-4 text-green-600" />
-          <span className="text-sm font-medium text-green-800">
+          <span className="font-medium text-green-800">
             द्रुत भर्ने | Quick Fill
           </span>
-          <Badge variant="secondary" className="ml-auto">
+          <Badge variant="secondary" className="ml-auto text-xs">
             Step 2/3
           </Badge>
         </div>
-        {/* Health Conditions */}
-        {/* <div className="space-y-3">
-          <Label className="flex items-center gap-2">
-            <Heart className="h-4 w-4" />
-            हालको स्वास्थ्य अवस्था | Current Health Conditions
-          </Label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {commonHealthConditions.map((condition) => (
-              <div key={condition.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={condition.id}
-                  checked={
-                    data.healthConditions?.includes(condition.id) || false
-                  }
-                  onCheckedChange={(checked) =>
-                    handleHealthConditionChange(
-                      condition.id,
-                      checked as boolean
-                    )
-                  }
-                />
-                <Label
-                  htmlFor={condition.id}
-                  className="cursor-pointer text-sm"
-                >
-                  {condition.label}
-                </Label>
-              </div>
-            ))}
-          </div>
-          {errors.healthConditions && (
-            <p className="text-red-500 text-sm flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" />
-              {errors.healthConditions}
-            </p>
-          )}
-        </div> */}
+
         {/* Contraindication Warning */}
         {hasContraindications && (
           <Alert className="border-red-200 bg-red-50">
@@ -168,162 +134,149 @@ export function RegistrationStep2({
             </AlertDescription>
           </Alert>
         )}
-        {/* Allergies */}
-        <div className="space-y-2">
-          <Label htmlFor="allergies">एलर्जी (यदि छ भने)</Label>
-          <Textarea
-            id="allergies"
-            value={data.allergies || ""}
-            onChange={(e) => onUpdate({ ...data, allergies: e.target.value })}
-            placeholder="कुनै एलर्जी छ भने लेख्नुहोस्..."
-            rows={2}
-          />
-        </div>
-        {/* Medical History */}
-        <div className="space-y-2">
-          <Label htmlFor="previousMedications">
-            If Medical History (यदि छ भने)
-          </Label>
-          <Textarea
-            id="previousMedications"
-            value={data.previousMedications || ""}
-            onChange={(e) =>
-              onUpdate({ ...data, previousMedications: e.target.value })
-            }
-            placeholder="कुनै एलर्जी छ भने लेख्नुहोस्..."
-            rows={2}
-          />
-        </div>
-        {/* Vaccination Status */}
-        {/* <div className="space-y-2">
-          <Label htmlFor="vaccinationStatus">खोप स्थिति</Label>
-          <Select
-            value={data.vaccinationStatus || ""}
-            onValueChange={(value) =>
-              onUpdate({ ...data, vaccinationStatus: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="खोप स्थिति छान्नुहोस्" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="complete">पूर्ण</SelectItem>
-              <SelectItem value="partial">आंशिक</SelectItem>
-              <SelectItem value="none">छैन</SelectItem>
-              <SelectItem value="unknown">थाहा छैन</SelectItem>
-            </SelectContent>
-          </Select>
-        </div> */}
 
-        <div className="space-y-3">
-          <Label>खोप स्थिति</Label>
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left Column: Health Info */}
+          <div className="p-4 bg-white border border-green-300  rounded-lg space-y-4">
+            {/* Allergies */}
+            <div className="space-y-1">
+              <Label htmlFor="allergies" className="text-sm">
+                एलर्जी (यदि छ भने)
+              </Label>
+              <Textarea
+                id="allergies"
+                value={data.allergies || ""}
+                onChange={(e) =>
+                  onUpdate({ ...data, allergies: e.target.value })
+                }
+                rows={2}
+                placeholder="कुनै एलर्जी छ भने लेख्नुहोस्..."
+                className="text-sm px-2 py-1"
+              />
+            </div>
 
-          {/* New / Old Choice */}
-          <div className="flex gap-3">
-            {/* New */}
-            <Button
-              type="button"
-              variant={data.vaccinationStatus === "new" ? "default" : "outline"}
-              className="flex-1 flex items-center gap-2 rounded-2xl shadow-sm"
-              onClick={() =>
-                onUpdate({
-                  ...data,
-                  vaccinationStatus: "new",
-                  oldDoseKnown: undefined,
-                  doses: undefined,
-                })
-              }
-            >
-              <Sparkles className="h-4 w-4" />
-              नयाँ
-              {data.vaccinationStatus === "new" && (
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-              )}
-            </Button>
+            {/* Medical History */}
+            <div className="space-y-1">
+              <Label htmlFor="previousMedications" className="text-sm">
+                If Medical History (यदि छ भने)
+              </Label>
+              <Textarea
+                id="previousMedications"
+                value={data.previousMedications || ""}
+                onChange={(e) =>
+                  onUpdate({ ...data, previousMedications: e.target.value })
+                }
+                rows={2}
+                placeholder="कुनै इतिहास छ भने लेख्नुहोस्..."
+                className="text-sm px-2 py-1"
+              />
+            </div>
 
-            {/* Old */}
-            <Button
-              type="button"
-              variant={data.vaccinationStatus === "old" ? "default" : "outline"}
-              className="flex-1 flex items-center gap-2 rounded-2xl shadow-sm"
-              onClick={() =>
-                onUpdate({
-                  ...data,
-                  vaccinationStatus: "old",
-                  oldDoseKnown: undefined,
-                  doses: undefined,
-                })
-              }
-            >
-              <Syringe className="h-4 w-4" />
-              पुरानो
-              {data.vaccinationStatus === "old" && (
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-              )}
-            </Button>
-          </div>
-
-          {/* If Old → Ask once */}
-          {data.vaccinationStatus === "old" &&
-            data.oldDoseKnown === undefined && (
-              <div className="flex gap-3 mt-2">
+            {/* Vaccination Status */}
+            <div className="space-y-2">
+              <Label className="text-sm">खोप स्थिति</Label>
+              <div className="flex gap-2">
                 <Button
                   type="button"
-                  variant="outline"
-                  className="flex-1 rounded-xl"
-                  onClick={() => onUpdate({ ...data, oldDoseKnown: false })}
-                >
-                  🤷 थाहा छैन
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1 rounded-xl"
+                  variant={
+                    data.vaccinationStatus === "new" ? "default" : "outline"
+                  }
+                  className="flex-1 flex items-center gap-1 text-sm py-1 rounded-2xl shadow-sm"
                   onClick={() =>
                     onUpdate({
                       ...data,
-                      oldDoseKnown: true,
-                      doses: data.doses || 1,
+                      vaccinationStatus: "new",
+                      oldDoseKnown: undefined,
+                      doses: undefined,
                     })
                   }
                 >
-                  थाहा छ
+                  <Sparkles className="h-4 w-4" /> नयाँ
+                  {data.vaccinationStatus === "new" && (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant={
+                    data.vaccinationStatus === "old" ? "default" : "outline"
+                  }
+                  className="flex-1 flex items-center gap-1 text-sm py-1 rounded-2xl shadow-sm"
+                  onClick={() =>
+                    onUpdate({
+                      ...data,
+                      vaccinationStatus: "old",
+                      oldDoseKnown: undefined,
+                      doses: undefined,
+                    })
+                  }
+                >
+                  <Syringe className="h-4 w-4" /> पुरानो
+                  {data.vaccinationStatus === "old" && (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  )}
                 </Button>
               </div>
-            )}
 
-          {/* If Old + Don’t Know */}
-          {data.vaccinationStatus === "old" && data.oldDoseKnown === false && (
-            <p className="text-muted-foreground text-sm">डोज संख्या थाहा छैन</p>
-          )}
-
-          {/* If Old + Know → show only dose input */}
-          {data.vaccinationStatus === "old" && data.oldDoseKnown === true && (
-            <div className="flex items-center gap-2 p-2 border rounded-xl shadow-sm mt-2">
-              <Label className="whitespace-nowrap">डोज संख्या:</Label>
-              <Input
-                type="number"
-                className="w-20 text-center"
-                value={data.doses || 1}
-                min={1}
-                onChange={(e) =>
-                  onUpdate({ ...data, doses: Number(e.target.value) })
-                }
-              />
+              {/* Old dose choice */}
+              {data.vaccinationStatus === "old" &&
+                data.oldDoseKnown === undefined && (
+                  <div className="flex gap-2 mt-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1 rounded-xl"
+                      onClick={() => onUpdate({ ...data, oldDoseKnown: false })}
+                    >
+                      🤷 थाहा छैन
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1 rounded-xl"
+                      onClick={() =>
+                        onUpdate({
+                          ...data,
+                          oldDoseKnown: true,
+                          doses: data.doses || 1,
+                        })
+                      }
+                    >
+                      थाहा छ
+                    </Button>
+                  </div>
+                )}
+              {data.vaccinationStatus === "old" &&
+                data.oldDoseKnown === true && (
+                  <div className="flex items-center gap-2 mt-1 p-2 border rounded-xl shadow-sm">
+                    <Label className="whitespace-nowrap text-sm">
+                      डोज संख्या:
+                    </Label>
+                    <Input
+                      type="number"
+                      className="w-20 text-center text-sm px-1 py-1"
+                      value={data.doses || 1}
+                      min={1}
+                      onChange={(e) =>
+                        onUpdate({ ...data, doses: Number(e.target.value) })
+                      }
+                    />
+                  </div>
+                )}
             </div>
-          )}
-        </div>
+          </div>
 
-        <div className="space-y-6">
-          {/* Anthropometric Measurements */}
-          <Card className="p-4 border border-gray-200 bg-gray-50 shadow-sm">
-            <CardTitle className="text-sm font-medium mb-3">
+          {/* Right Column: Anthropometry */}
+          <div className="p-4  border border-green-100 rounded-lg shadow-sm space-y-4">
+            <CardTitle className="text-sm font-medium mb-2">
               शारीरिक मापन | Anthropometry
             </CardTitle>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               <div className="flex flex-col">
-                <Label htmlFor="weight">तौल (kg)</Label>
+                <Label htmlFor="weight" className="text-sm">
+                  तौल (kg)
+                </Label>
                 <Input
                   id="weight"
                   type="number"
@@ -331,12 +284,14 @@ export function RegistrationStep2({
                   onChange={(e) =>
                     onUpdate({ ...data, weight: e.target.value })
                   }
-                  placeholder="किलोमा लेख्नुहोस्"
+                  placeholder="किलोमा"
+                  className="text-sm px-2 py-1 bg-white"
                 />
               </div>
-
               <div className="flex flex-col">
-                <Label htmlFor="height">उचाइ (cm)</Label>
+                <Label htmlFor="height" className="text-sm">
+                  उचाइ (cm)
+                </Label>
                 <Input
                   id="height"
                   type="number"
@@ -344,23 +299,27 @@ export function RegistrationStep2({
                   onChange={(e) =>
                     onUpdate({ ...data, height: e.target.value })
                   }
-                  placeholder="से.मी. मा लेख्नुहोस्"
+                  placeholder="से.मी."
+                  className="text-sm px-2 py-1"
                 />
               </div>
-
               <div className="flex flex-col">
-                <Label htmlFor="muac">MUAC (cm)</Label>
+                <Label htmlFor="muac" className="text-sm">
+                  MUAC (cm)
+                </Label>
                 <Input
                   id="muac"
                   type="number"
                   value={data.muac || ""}
                   onChange={(e) => onUpdate({ ...data, muac: e.target.value })}
-                  placeholder="MUAC से.मी. मा"
+                  placeholder="से.मी."
+                  className="text-sm px-2 py-1"
                 />
               </div>
-
               <div className="flex flex-col">
-                <Label htmlFor="headCircumference">माथि घेरा (cm)</Label>
+                <Label htmlFor="headCircumference" className="text-sm">
+                  माथि घेरा (cm)
+                </Label>
                 <Input
                   id="headCircumference"
                   type="number"
@@ -368,12 +327,14 @@ export function RegistrationStep2({
                   onChange={(e) =>
                     onUpdate({ ...data, headCircumference: e.target.value })
                   }
-                  placeholder="से.मी. मा लेख्नुहोस्"
+                  placeholder="से.मी."
+                  className="text-sm px-2 py-1"
                 />
               </div>
-
               <div className="flex flex-col">
-                <Label htmlFor="chestCircumference">छाती घेरा (cm)</Label>
+                <Label htmlFor="chestCircumference" className="text-sm">
+                  छाती घेरा (cm)
+                </Label>
                 <Input
                   id="chestCircumference"
                   type="number"
@@ -381,17 +342,18 @@ export function RegistrationStep2({
                   onChange={(e) =>
                     onUpdate({ ...data, chestCircumference: e.target.value })
                   }
-                  placeholder="से.मी. मा लेख्नुहोस्"
+                  placeholder="से.मी."
+                  className="text-sm px-2 py-1"
                 />
               </div>
             </div>
-          </Card>
+          </div>
         </div>
+
         {/* Navigation Buttons */}
         <div className="flex justify-between pt-4">
           <Button variant="outline" onClick={onPrev}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            पछाडि
+            <ArrowLeft className="mr-2 h-4 w-4" /> पछाडि
           </Button>
           <Button onClick={handleNext} disabled={hasContraindications}>
             अर्को चरण | Next Step

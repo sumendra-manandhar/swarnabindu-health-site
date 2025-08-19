@@ -130,6 +130,7 @@ export function RegistrationStep3({
               बिरामीको जानकारी
             </CardTitle>
           </CardHeader>
+
           <CardContent className="space-y-3 text-sm">
             <div>
               <Label className="text-gray-600">नाम:</Label>
@@ -201,14 +202,23 @@ export function RegistrationStep3({
 
       {/* RIGHT COLUMN (Form) */}
       <div className="lg:col-span-2">
-        <Card>
-          <CardHeader className="bg-gradient-to-r from-amber-600 to-orange-600 text-white">
-            <CardTitle className="flex items-center gap-2">
+        <Card className="w-full max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-xl">
+          <CardHeader className="bg-gradient-to-r  from-amber-600 to-orange-600 text-white rounded-xl p-4">
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
               <Zap className="h-5 w-5" />
               स्वर्णबिन्दु प्राशन विवरण | Administration Form
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6 p-6">
+          <CardContent className="space-y-6 ">
+            <div className="flex items-center gap-2 p-2 bg-green-50 rounded-md shadow-sm text-sm">
+              <Zap className="h-4 w-4 text-green-600" />
+              <span className="font-medium text-green-800">
+                द्रुत भर्ने | Quick Fill
+              </span>
+              <Badge variant="secondary" className="ml-auto text-xs">
+                Step 3/3
+              </Badge>
+            </div>
             {/* Administered By */}
             <div>
               <Label htmlFor="administeredBy">सेवन गराउने व्यक्ति *</Label>

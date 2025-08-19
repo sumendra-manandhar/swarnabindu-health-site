@@ -346,7 +346,7 @@ export default function RegisterPage() {
         )}
 
         {/* Step Content */}
-        <div className="max-w-4xl mx-auto">
+        <div className="mx-auto">
           {currentStep === 1 && (
             <RegistrationStep1
               data={registrationData}
