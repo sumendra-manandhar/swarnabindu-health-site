@@ -348,6 +348,7 @@ export default function SyncPage() {
                 variant="destructive"
                 onClick={clearAllData}
                 className="w-full"
+                disabled
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Clear All Data

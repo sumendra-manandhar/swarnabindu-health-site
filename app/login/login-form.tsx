@@ -17,6 +17,8 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Heart, Loader2, User, Lock } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import Image from "next/image";
+import Logo from "../../logo.jpeg";
 
 export default function LoginForm() {
   const [username, setUsername] = useState("");
@@ -71,12 +73,19 @@ export default function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-red-100 rounded-full">
-              <Heart className="h-8 w-8 text-red-600" />
+          <div className="flex justify-center ">
+            <div className="p-3 rounded-full">
+              <Image
+                src={Logo} // <-- update with your image path
+                alt="Logo"
+                width={100}
+                height={100}
+                className="h-[100px] w-[100px] object-contain"
+                priority
+              />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-2xl font-bold text-gray-900 mt-0">
             स्वर्णबिन्दु प्राशन
           </CardTitle>
           <CardDescription className="text-gray-600">
