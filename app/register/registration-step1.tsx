@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { User, Calendar, AlertCircle, Zap } from "lucide-react";
-import { DISTRICTS_WITH_PALIKA } from "@/lib/constants";
+import { DANG_PALIKAS, DISTRICTS_WITH_PALIKA } from "@/lib/constants";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface RegistrationStep1Props {
@@ -209,6 +209,9 @@ export function RegistrationStep1({
     }
   }, [data.dateOfBirth]);
 
+  // Example dropdown items (replace with your actual list)
+  const locationOptions = Object.entries(DANG_PALIKAS);
+
   return (
     <Card className="w-full max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-xl">
       {/* Header */}
@@ -236,7 +239,7 @@ export function RegistrationStep1({
           {/* Left Column: Child Info */}
           <div className="p-4 bg-white border border-blue-100 space-y-4">
             {/* District / Palika */}
-            <div className="grid grid-cols-2 gap-2">
+            {/* <div className="grid grid-cols-2 gap-2">
               <Input
                 value={data.district}
                 readOnly
@@ -249,6 +252,37 @@ export function RegistrationStep1({
                 placeholder="पालिका स्वतः भर्नेछ"
                 className="text-sm px-2 py-1 max-w-xs  bg-gray-200"
               />
+            </div> */}
+            <div className="grid grid-cols-2 gap-2 items-center">
+              {/* <Input
+                value={data.district}
+                readOnly
+                placeholder="जिल्ला स्वतः भर्नेछ"
+                className="text-sm px-2 py-1 max-w-xs bg-gray-200"
+              /> */}
+              <Input
+                value={data.district}
+                readOnly
+                // placeholder="पालिका स्वतः भर्नेछ"
+                className="text-sm px-2 py-1 max-w-xs bg-gray-200"
+              />
+              {/* Dropdown for quick location selection */}
+              <select
+                className="text-sm px-2 py-1 max-w-xs border rounded bg-white"
+                value={data.palika}
+                onChange={(e) => {
+                  onUpdate({
+                    palika: e.target.value,
+                  });
+                }}
+              >
+                <option value="">छान्नुहोस् | Select Palika</option>
+                {DANG_PALIKAS.map((palika, idx) => (
+                  <option key={palika} value={`${idx + 1}-${palika}`}>
+                    {idx + 1}. {palika}
+                  </option>
+                ))}
+              </select>
             </div>
             <h3 className="text-blue-700 font-semibold text-sm">
               बालक विवरण | Child Info
@@ -393,7 +427,7 @@ export function RegistrationStep1({
                     <span className="flex items-center gap-1 text-sm font-medium">
                       उमेर:
                       <Input
-                        type="number"
+                        // type="number"
                         min="0"
                         value={manualAge.years}
                         onChange={(e) =>
@@ -403,7 +437,7 @@ export function RegistrationStep1({
                       />
                       वर्ष
                       <Input
-                        type="number"
+                        // type="number"
                         min="0"
                         max="11"
                         value={manualAge.months}

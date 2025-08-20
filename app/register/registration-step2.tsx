@@ -239,7 +239,7 @@ export function RegistrationStep2({
                         onUpdate({
                           ...data,
                           oldDoseKnown: true,
-                          doses: data.doses || 1,
+                          doses: data.doses || 0,
                         })
                       }
                     >
@@ -254,10 +254,10 @@ export function RegistrationStep2({
                       डोज संख्या:
                     </Label>
                     <Input
-                      type="number"
+                      // type="number"
                       className="w-20 text-center text-sm px-1 py-1"
-                      value={data.doses || 1}
-                      min={1}
+                      value={data.doses || "0"}
+                      min={0}
                       onChange={(e) =>
                         onUpdate({ ...data, doses: Number(e.target.value) })
                       }

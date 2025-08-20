@@ -21,6 +21,13 @@ import {
   Phone,
   Calendar,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface RegistrationStep3Props {
@@ -41,11 +48,10 @@ export function RegistrationStep3({
   const [saving, setSaving] = useState(false);
 
   const commonAdministrators = [
-    "डा. राम प्रसाद शर्मा",
-    "डा. सीता देवी पौडेल",
-    "डा. हरि बहादुर थापा",
-    "नर्स सुनिता गुरुङ",
-    "आयुर्वेद सहायक मोहन राई",
+    "डा. सन्जु भुसाल ",
+    "डा. प्रथिभा सेन ",
+    "डा. सागर पोखरेल",
+    "डा. प्रतिक्षा के.सी ",
   ];
 
   useEffect(() => {
@@ -117,6 +123,23 @@ export function RegistrationStep3({
   };
 
   const doseRecommendation = getDoseRecommendation();
+  const doses = [
+    {
+      value: 1,
+      label: "१ थोपा",
+      age: "६ महिना - १ वर्ष",
+    },
+    {
+      value: 2,
+      label: "२ थोपा",
+      age: "१ वर्ष - २ वर्ष",
+    },
+    {
+      value: 4,
+      label: "४ थोपा",
+      age: "३ वर्ष माथि",
+    },
+  ];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -220,7 +243,7 @@ export function RegistrationStep3({
               </Badge>
             </div>
             {/* Administered By */}
-            <div>
+            {/* <div>
               <Label htmlFor="administeredBy">सेवन गराउने व्यक्ति *</Label>
               <Input
                 id="administeredBy"
@@ -230,7 +253,7 @@ export function RegistrationStep3({
                 placeholder="डाक्टर/नर्सको नाम"
               />
               <div className="flex gap-2 mt-2 flex-wrap">
-                {commonAdministrators.slice(0, 3).map((name) => (
+                {commonAdministrators.slice().map((name) => (
                   <Button
                     key={name}
                     variant="outline"
@@ -246,10 +269,38 @@ export function RegistrationStep3({
                   {errors.administeredBy}
                 </p>
               )}
+            </div> */}
+            {/* Administered By */}
+
+            <div>
+              <Label>सेवन गराउने व्यक्ति *</Label>
+              <div className="flex gap-2 mt-2 flex-wrap">
+                {commonAdministrators.map((name) => (
+                  <Button
+                    key={name}
+                    variant={
+                      data.administeredBy === name ? "default" : "outline"
+                    }
+                    size="sm"
+                    onClick={() => onUpdate({ administeredBy: name })}
+                    className={
+                      data.administeredBy === name ? "border-blue-600" : ""
+                    }
+                  >
+                    {name}
+                  </Button>
+                ))}
+              </div>
+              {errors.administeredBy && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.administeredBy}
+                </p>
+              )}
             </div>
 
             {/* Batch & Dose */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="batchNumber">ब्याच नम्बर</Label>
                 <Input
@@ -268,7 +319,104 @@ export function RegistrationStep3({
                   placeholder={doseRecommendation.amount}
                 />
               </div>
-            </div>
+            </div> */}
+
+            {/* Batch & Dose Card */}
+            <Card className="w-full shadow-md rounded-2xl border border-gray-200">
+              <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-2xl">
+                <CardTitle className="text-lg font-semibold">
+                  ब्याच नम्बर र मात्रा (थोपा)
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Batch number */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="batchNumber"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      ब्याच नम्बर
+                    </Label>
+                    <Input
+                      id="batchNumber"
+                      value={data.batchNumber}
+                      onChange={(e) =>
+                        onUpdate({ batchNumber: e.target.value })
+                      }
+                      placeholder="Auto-generated"
+                      className="rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500"
+                    />
+                  </div>
+
+                  {/* Dose dropdown */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="doseAmount"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      मात्रा (थोपा)
+                    </Label>
+
+                    <Select
+                      onValueChange={(val) => onUpdate({ doseAmount: val })}
+                      value={data.doseAmount}
+                    >
+                      <SelectTrigger className="w-full rounded-lg border-gray-300 focus:border-green-500 focus:ring-green-500">
+                        <SelectValue placeholder={doseRecommendation.amount} />
+                      </SelectTrigger>
+
+                      <SelectContent className="rounded-lg shadow-lg">
+                        {doses.map((dose) => (
+                          <SelectItem
+                            key={dose.value}
+                            value={String(dose.value)}
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-medium">{dose.label}</span>
+                              <span className="text-xs text-gray-500">
+                                {dose.age}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+
+                        {/* Divider */}
+                        <div className="border-t my-2" />
+
+                        {/* Custom dose input */}
+                        <div className="px-3 py-2 space-y-1">
+                          <Label
+                            htmlFor="customDose"
+                            className="text-xs text-gray-600"
+                          >
+                            Custom मात्रा
+                          </Label>
+                          <Input
+                            id="customDose"
+                            type="number"
+                            min={0}
+                            placeholder="Enter drops"
+                            value={
+                              !doses.some(
+                                (d) => String(d.value) === data.doseAmount
+                              )
+                                ? data.doseAmount
+                                : ""
+                            }
+                            onChange={(e) =>
+                              onUpdate({ doseAmount: e.target.value })
+                            }
+                            className="h-9 w-full rounded-md border-gray-300 focus:border-green-500 focus:ring-green-500"
+                          />
+                        </div>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Notes */}
             <div>

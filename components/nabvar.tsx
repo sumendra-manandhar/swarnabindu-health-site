@@ -26,6 +26,8 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import Image from "next/image";
+import Logo from "../logo.jpeg";
 
 const navigationItems = [
   { href: "/", label: "गृहपृष्ठ", icon: Home, roles: ["admin", "volunteer"] },
@@ -75,7 +77,15 @@ export default function Navbar() {
           {/* Logo and Brand */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2">
-              <Heart className="h-8 w-8 text-red-500" />
+              <Image
+                src={Logo} // <-- update with your image path
+                alt="Logo"
+                width={32}
+                height={32}
+                className="h-8 w-8 object-contain"
+                priority
+              />
+              {/* <Heart className="h-8 w-8 text-red-500" /> */}
               <span className="font-bold text-xl text-gray-900">
                 स्वर्णबिन्दु
               </span>
