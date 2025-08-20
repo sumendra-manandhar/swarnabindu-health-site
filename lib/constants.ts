@@ -7,7 +7,7 @@ export const COMMON_SURNAMES = [
 ];
 
 export const DISTRICTS_WITH_PALIKA: Record<string, string> = {
-  काठमाडौं: "काठमाडौं महानगरपालिका",
+  दाङ: "दाङ नगरपालिका",
 
   //   भक्तपुर: "भक्तपुर नगरपालिका",
   //   चितवन: "भरतपुर महानगरपालिका",
