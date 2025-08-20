@@ -144,10 +144,16 @@ export default function LoginForm() {
                 <strong>प्रशासक:</strong> admin / admin123
               </div>
               <div>
-                <strong>स्वयंसेवक:</strong> volunteer1 / vol123
+                <strong>स्वयंसेवक:</strong> Prem / Preari
               </div>
               <div>
-                <strong>स्वयंसेवक:</strong> volunteer2 / vol123
+                <strong>स्वयंसेवक:</strong> Hari / Harary
+              </div>
+              <div>
+                <strong>स्वयंसेवक:</strong> Ravi / Ravane
+              </div>
+              <div>
+                <strong>स्वयंसेवक:</strong> Pratap / Prarma
               </div>
             </div>
           </div>

@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { OfflineStorage } from "@/lib/offline-storage";
+import { supabase } from "@/lib/supabase";
 import {
   Activity,
   AlertTriangle,
@@ -64,45 +65,74 @@ export default function Home() {
   const loadStatistics = async () => {
     setLoading(true);
     try {
-      // Load from offline storage first
+      // Offline data
       const offlineRegistrations = OfflineStorage.getOfflineRegistrations();
       const offlineScreenings = OfflineStorage.getOfflineScreenings();
 
-      const today = new Date().toDateString();
-      const todayRegs = offlineRegistrations.filter(
-        (reg) => new Date(reg.timestamp).toDateString() === today
-      );
+      const today = new Date();
+      const startOfDay = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+      const endOfDay = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+
+      const todayRegsOffline = offlineRegistrations.filter((reg) => {
+        const regDate = new Date(reg.timestamp);
+        return regDate >= new Date(startOfDay) && regDate <= new Date(endOfDay);
+      });
+
+      const isOnline =
+        typeof navigator !== "undefined" ? navigator.onLine : false;
 
       const onlineStats = {
         totalPatients: 0,
         malePatients: 0,
         femalePatients: 0,
         totalScreenings: 0,
+        todayRegistrations: 0,
       };
 
-      // Try to get online stats if connected
+      if (isOnline) {
+        try {
+          // Get all registrations for total counts
+          const { data: registrations, error: regError } = await supabase
+            .from("registrations")
+            .select("id, gender");
 
-      // if (isOnline) {
-      //   try {
-      //     const { data } = await DatabaseService.getRegistrations();
-      //     if (data) {
-      //       onlineStats.totalPatients = data.length;
-      //       onlineStats.malePatients = data.filter(
-      //         (p: any) => p.gender === "male"
-      //       ).length;
-      //       onlineStats.femalePatients = data.filter(
-      //         (p: any) => p.gender === "female"
-      //       ).length;
-      //     }
+          if (regError) throw regError;
 
-      //     const screeningsResult = await DatabaseService.getScreenings();
-      //     if (screeningsResult.data) {
-      //       onlineStats.totalScreenings = screeningsResult.data.length;
-      //     }
-      //   } catch (error) {
-      //     console.warn("Failed to load online stats:", error);
-      //   }
-      // }
+          if (registrations) {
+            onlineStats.totalPatients = registrations.length;
+            onlineStats.malePatients = registrations.filter(
+              (p) => p.gender === "male"
+            ).length;
+            onlineStats.femalePatients = registrations.filter(
+              (p) => p.gender === "female"
+            ).length;
+          }
+
+          // Get today's registrations count
+          const { data: todayRegs, error: todayError } = await supabase
+            .from("registrations")
+            .select("id")
+            .gte("created_at", startOfDay)
+            .lte("created_at", endOfDay);
+
+          if (todayError) throw todayError;
+
+          onlineStats.todayRegistrations = todayRegs ? todayRegs.length : 0;
+
+          // Get total screenings
+          const { data: screenings, error: screenError } = await supabase
+            .from("screenings")
+            .select("id");
+
+          if (screenError) throw screenError;
+
+          if (screenings) {
+            onlineStats.totalScreenings = screenings.length;
+          }
+        } catch (error) {
+          console.warn("Failed to load online stats:", error);
+        }
+      }
 
       setStats({
         totalPatients: onlineStats.totalPatients + offlineRegistrations.length,
@@ -114,7 +144,8 @@ export default function Home() {
           onlineStats.femalePatients +
           offlineRegistrations.filter((reg) => reg.data.gender === "female")
             .length,
-        todayRegistrations: todayRegs.length,
+        todayRegistrations:
+          onlineStats.todayRegistrations + todayRegsOffline.length,
         totalScreenings: onlineStats.totalScreenings + offlineScreenings.length,
         pendingSync: offlineRegistrations.filter((reg) => !reg.synced).length,
       });

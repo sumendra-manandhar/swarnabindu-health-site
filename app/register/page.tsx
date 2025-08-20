@@ -52,12 +52,13 @@ interface RegistrationData {
   chestCircumference: string;
 
   // Step 3 - Swarnabindu Details
-  administeredBy: string;
+  // administeredBy: string;
   batchNumber: string;
   consentGiven: boolean;
   doseAmount: string;
   notes: string;
   eligibilityConfirmed: boolean;
+  age: string;
 }
 
 export default function RegisterPage() {
@@ -77,6 +78,7 @@ export default function RegisterPage() {
     contactNumber: "",
     district: "",
     palika: "",
+    age: "",
 
     // Step 2 - Health condition
     healthConditions: [],
@@ -90,7 +92,7 @@ export default function RegisterPage() {
     chestCircumference: "",
 
     // Step 3 - Swarnabindu Details
-    administeredBy: "",
+    // administeredBy: "",
     batchNumber: "",
     consentGiven: false,
     doseAmount: "",
@@ -215,9 +217,10 @@ export default function RegisterPage() {
             muac: "",
             headCircumference: "",
             chestCircumference: "",
+            age:'',
 
             // Step 3 - Swarnabindu Details
-            administeredBy: registrationData.administeredBy, // Keep admin name
+            // administeredBy: registrationData.administeredBy, // Keep admin name
             batchNumber: "",
             consentGiven: false,
             doseAmount: "",

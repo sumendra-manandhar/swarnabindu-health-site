@@ -16,6 +16,9 @@ import {
 import Link from "next/link";
 import { OfflineStorage } from "@/lib/offline-storage";
 import { ApiService } from "@/lib/api-service";
+import { supabase } from "@/lib/supabase";
+import { NextResponse } from "next/server";
+import { useRef } from "react";
 // import { DatabaseService } from "@/lib/supabase";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -33,9 +36,28 @@ export function RegistrationSuccess({
   const [isOnline, setIsOnline] = useState(true);
   const [certificateGenerated, setCertificateGenerated] = useState(false);
 
+  const hasSaved = useRef(false);
   useEffect(() => {
-    setIsOnline(navigator.onLine);
-    saveRegistration();
+    if (!hasSaved.current) {
+      setIsOnline(navigator.onLine);
+
+      // Only save once
+      saveRegistration();
+      hasSaved.current = true;
+    }
+
+    const handleOnlineStatus = () => {
+      setIsOnline(navigator.onLine);
+    };
+
+    // Optional: keep track of online/offline status
+    window.addEventListener("online", handleOnlineStatus);
+    window.addEventListener("offline", handleOnlineStatus);
+
+    return () => {
+      window.removeEventListener("online", handleOnlineStatus);
+      window.removeEventListener("offline", handleOnlineStatus);
+    };
   }, []);
 
   // const saveRegistration = async () => {
@@ -127,33 +149,136 @@ export function RegistrationSuccess({
   //   return `SB${year}${month}${day}${random}`;
   // };
 
+  // const saveRegistration = async () => {
+  //   try {
+  //     const registrationRecord = {
+  //       ...registrationData,
+  //       date: new Date().toISOString().split("T")[0],
+  //       created_at: new Date().toISOString(),
+  //       serial_no: generateSerialNumber(),
+  //       age: calculateAge(registrationData.dateOfBirth),
+  //     };
+
+  //     setSerialNumber(registrationRecord.serial_no);
+
+  //     if (isOnline) {
+  //       const { data, error } = await ApiService.createRegistration(
+  //         registrationRecord
+  //       );
+  //       if (!error) {
+  //         console.log("✅ Registration saved to API");
+  //         return;
+  //       }
+  //     }
+
+  //     // Save to offline storage as fallback
+  //     OfflineStorage.saveRegistration(registrationRecord);
+  //     console.log("⚡ Registration saved offline");
+  //   } catch (error) {
+  //     console.error("Error saving registration:", error);
+  //   }
+  // };
+
+  // const saveRegistration = async () => {
+  //   try {
+  //     const registrationRecord = {
+  //       ...registrationData,
+  //       dateOfBirth: registrationData.dateOfBirth, // make sure key matches API
+  //       createdAt: new Date().toISOString(),
+  //       serial_no: generateSerialNumber(),
+  //       age: calculateAge(registrationData.dateOfBirth),
+  //     };
+
+  //     setSerialNumber(registrationRecord.serial_no);
+
+  //     if (isOnline) {
+  //       debugger;
+  //       alert("Saving registration to API...");
+  //       const response = await fetch("/api/registration", {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({ data: registrationRecord }), // wrap in { data: ... }
+  //       });
+
+  //       const result = await response.json();
+  //       if (response.ok && result.success) {
+  //         console.log("✅ Registration saved to API");
+  //         return;
+  //       } else {
+  //         console.error("❌ API error:", result);
+  //       }
+  //     }
+
+  //     // Save to offline storage as fallback
+  //     OfflineStorage.saveRegistration(registrationRecord);
+  //     console.log("⚡ Registration saved offline");
+  //   } catch (error) {
+  //     console.error("Error saving registration:", error);
+  //   }
+  // };
+
+  let saveInProgress = false;
+
   const saveRegistration = async () => {
+    if (saveInProgress) return;
+    saveInProgress = true;
     try {
       const registrationRecord = {
-        ...registrationData,
-        date: new Date().toISOString().split("T")[0],
-        created_at: new Date().toISOString(),
-        serial_no: generateSerialNumber(),
-        age: calculateAge(registrationData.dateOfBirth),
+        gender: registrationData.gender,
+        child_name: registrationData.childName,
+        date_of_birth: registrationData.dateOfBirth,
+        guardian_name: registrationData.guardianName,
+        father_name: registrationData.fatherName,
+        mother_name: registrationData.motherName,
+        father_occupation: registrationData.fatherOccupation,
+        mother_occupation: registrationData.motherOccupation,
+        contact_number: registrationData.contactNumber,
+        district: registrationData.district,
+        palika: registrationData.palika,
+        health_conditions: registrationData.healthConditions || [], // must be array
+        allergies: registrationData.allergies,
+        previous_medications: registrationData.previousMedications,
+        vaccination_status: registrationData.vaccinationStatus,
+        weight: registrationData.weight,
+        height: registrationData.height,
+        muac: registrationData.muac,
+        head_circumference: registrationData.headCircumference,
+        chest_circumference: registrationData.chestCircumference,
+        administered_by: registrationData.administeredBy, // ✅ fixed casing
+        batch_number: registrationData.batchNumber,
+        consent_given: registrationData.consentGiven, // boolean
+        dose_amount: registrationData.doseAmount,
+        notes: registrationData.notes,
+        eligibility_confirmed: registrationData.eligibilityConfirmed, // boolean
+        created_at: new Date().toISOString(), // optional — will default to now()
+        // serial_no: generateSerialNumber(),
       };
 
-      setSerialNumber(registrationRecord.serial_no);
+      // setSerialNumber(registrationRecord.serial_no);
+      alert(
+        `Saving registration with serial number: ${registrationRecord.batch_number}`
+      );
 
-      if (isOnline) {
-        const { data, error } = await ApiService.createRegistration(
-          registrationRecord
-        );
-        if (!error) {
-          console.log("✅ Registration saved to API");
-          return;
-        }
+      console.log("🌐 Attempting to save registration to Supabase...");
+      console.log(registrationRecord);
+
+      const { data, error } = await supabase
+        .from("registrations")
+        .insert([registrationRecord]);
+
+      if (error) {
+        console.error("❌ Supabase insert error:", error);
+        throw error; // fallback to offline
       }
 
-      // Save to offline storage as fallback
-      OfflineStorage.saveRegistration(registrationRecord);
-      console.log("⚡ Registration saved offline");
+      console.log("✅ Registration saved to Supabase:", data);
+      return;
     } catch (error) {
-      console.error("Error saving registration:", error);
+      console.error(
+        "⚠️ Error saving registration, saving offline instead:",
+        error
+      );
+      await OfflineStorage.saveRegistration(registrationData);
     }
   };
 

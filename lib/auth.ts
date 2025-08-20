@@ -21,27 +21,47 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       name: "प्रशासक",
       username: "admin",
       role: "admin",
-      district: "काठमाडौं",
+      district: "दाङ",
     },
   },
-  volunteer1: {
-    password: "vol123",
+  premtiwari: {
+    password: "entry123", // Prem Tirwari: "Pre" + "ari"
     user: {
       id: "2",
-      name: "राम बहादुर",
-      username: "volunteer1",
+      name: "Prem Kumar Tirwari",
+      username: "premkumar",
       role: "volunteer",
-      district: "पोखरा",
+      district: "दाङ",
     },
   },
-  volunteer2: {
-    password: "vol123",
+  nawarajdangi: {
+    password: "entry123", // Hari Acharya: "Har" + "ary"
     user: {
       id: "3",
-      name: "सीता देवी",
-      username: "volunteer2",
+      name: "Nawaraj Dangi",
+      username: "nawarajdangi",
       role: "volunteer",
-      district: "चितवन",
+      district: "दाङ",
+    },
+  },
+  rajanchaudhary: {
+    password: "entry123", // Ravi Lamichane: "Rav" + "ane"
+    user: {
+      id: "4",
+      name: "Rajan Chaudhary",
+      username: "rajanchaudhary",
+      role: "volunteer",
+      district: "दाङ",
+    },
+  },
+  haririjal: {
+    password: "entry123", // Pratap Sharma: "Pra" + "rma"
+    user: {
+      id: "5",
+      name: "Hari Rijal",
+      username: "haririjal",
+      role: "volunteer",
+      district: "दाङ",
     },
   },
 };

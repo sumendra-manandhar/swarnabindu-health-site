@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { OfflineStorage } from "@/lib/offline-storage";
+import { supabase } from "@/lib/supabase";
 
 interface RegistrationRecord {
   id: string;
@@ -101,41 +102,38 @@ export default function ReportsPage() {
     try {
       setLoading(true);
 
-      // Load registrations from local storage
+      // Local data
       const localRegistrations = OfflineStorage.getAllLocalRegistrations();
-
-      // Load screenings from local storage
       const localScreenings = OfflineStorage.getOfflineScreenings().map(
         (s) => s.data
       );
 
-      // Try to load from server if online
       const isOnline =
         typeof navigator !== "undefined" ? navigator.onLine : false;
 
       if (isOnline) {
         try {
-          const [regResponse, screenResponse] = await Promise.all([
-            fetch("/api/registrations"),
-            fetch("/api/screenings"),
+          // Fetch from Supabase
+          const { data: serverRegistrations, error: regError } = await supabase
+            .from("registrations")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+          if (regError) throw regError;
+
+          // Optionally deduplicate here if needed
+          setRegistrations([
+            ...localRegistrations,
+            ...(serverRegistrations || []),
           ]);
-
-          if (regResponse.ok && screenResponse.ok) {
-            const serverRegistrations = await regResponse.json();
-            const serverScreenings = await screenResponse.json();
-
-            setRegistrations([...localRegistrations, ...serverRegistrations]);
-            setScreenings([...localScreenings, ...serverScreenings]);
-          } else {
-            setRegistrations(localRegistrations);
-            setScreenings(localScreenings);
-          }
+          setScreenings(localScreenings); // Supabase screenings can be added if available
         } catch (error) {
-          console.log("Using offline data");
+          console.warn("Supabase fetch failed. Falling back to local.", error);
           setRegistrations(localRegistrations);
           setScreenings(localScreenings);
         }
       } else {
+        // Offline fallback
         setRegistrations(localRegistrations);
         setScreenings(localScreenings);
       }

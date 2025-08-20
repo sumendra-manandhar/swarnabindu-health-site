@@ -30,6 +30,48 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { SyncManager } from "./sync-manager";
+import { supabase } from "@/lib/supabase";
+
+/* Field mapping: camelCase → snake_case (matching Supabase schema) */
+const snakeCaseMap: Record<string, string> = {
+  gender: "gender",
+  childName: "child_name",
+  dateOfBirth: "date_of_birth",
+  guardianName: "guardian_name",
+  fatherName: "father_name",
+  motherName: "mother_name",
+  fatherOccupation: "father_occupation",
+  motherOccupation: "mother_occupation",
+  contactNumber: "contact_number",
+  district: "district",
+  palika: "palika",
+  healthConditions: "health_conditions",
+  allergies: "allergies",
+  previousMedications: "previous_medications",
+  vaccinationStatus: "vaccination_status",
+  weight: "weight",
+  height: "height",
+  muac: "muac",
+  headCircumference: "head_circumference",
+  chestCircumference: "chest_circumference",
+  administeredBy: "administered_by",
+  batchNumber: "batch_number",
+  consentGiven: "consent_given",
+  doseAmount: "dose_amount",
+  notes: "notes",
+  eligibilityConfirmed: "eligibility_confirmed",
+};
+
+/* Convert camelCase data to snake_case & filter out extra keys */
+function sanitizeRegistration(data: Record<string, any>) {
+  const sanitized: Record<string, any> = {};
+  for (const key in snakeCaseMap) {
+    if (data[key] !== undefined) {
+      sanitized[snakeCaseMap[key]] = data[key];
+    }
+  }
+  return sanitized;
+}
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface OfflineRegistration {
@@ -99,9 +141,7 @@ export default function SyncPage() {
 
   const handleManualSync = async () => {
     if (!isOnline) {
-      alert(
-        "Cannot sync while offline. Please check your internet connection."
-      );
+      alert("Cannot sync while offline.");
       return;
     }
 
@@ -115,55 +155,29 @@ export default function SyncPage() {
         return;
       }
 
-      const token = localStorage.getItem("authToken"); // Get token from login
-
-      const response = await fetch(
-        "https://health-service.gyanbazzar.com/registrations",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-          body: JSON.stringify({
-            registrations: pendingRegs.map((r) => r.data),
-            // screenings: pendingScreens.map((s) => s.data),
-          }),
-        }
+      const registrationPayload = pendingRegs.map((r) =>
+        sanitizeRegistration(r.data)
       );
+      const { error: supabaseError } = await supabase
+        .from("registrations")
+        .insert(registrationPayload);
 
-      // const response = await fetch(
-      //   "https://health-service.gyanbazzar.com/registrations",
-      //   {
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     body: JSON.stringify(registrationData),
-      //   }
-      // );
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Mark items as synced
-        pendingRegs.forEach((reg) =>
-          OfflineStorage.markRegistrationSynced(reg.id)
-        );
-        pendingScreens.forEach((screening) =>
-          OfflineStorage.markScreeningSynced(screening.id)
-        );
-
-        loadPendingData();
-        alert(
-          `Successfully synced ${pendingRegs.length} registrations and ${pendingScreens.length} screenings.`
-        );
-      } else {
-        alert(`Sync failed: ${result.message}`);
+      if (supabaseError) {
+        console.error("❌ Supabase insert error:", supabaseError);
+        alert("Sync failed: " + supabaseError.message);
+        return;
       }
+
+      // Mark as synced
+      pendingRegs.forEach((r) => OfflineStorage.markRegistrationSynced(r.id));
+      pendingScreens.forEach((s) => OfflineStorage.markScreeningSynced(s.id));
+      loadPendingData();
+
+      alert(
+        `✅ Synced ${pendingRegs.length} registrations and ${pendingScreens.length} screenings.`
+      );
     } catch (error) {
-      console.error("Manual sync error:", error);
+      console.error("❌ Manual sync error:", error);
       alert("Sync failed. Please try again.");
     } finally {
       setSyncing(false);
