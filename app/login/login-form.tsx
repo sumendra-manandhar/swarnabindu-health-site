@@ -34,30 +34,30 @@ export default function LoginForm() {
 
     try {
       const success = await login(username, password);
-      // if (success) {
-      const response = await fetch(
-        "https://health-service.gyanbazzar.com/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            email: username,
-            password: password,
-          }),
-        }
-      );
+      if (success) {
+        // const response = await fetch(
+        //   "https://health-service.gyanbazzar.com/login",
+        //   {
+        //     method: "POST",
+        //     headers: {
+        //       "Content-Type": "application/json",
+        //       Accept: "application/json",
+        //     },
+        //     body: JSON.stringify({
+        //       email: username,
+        //       password: password,
+        //     }),
+        //   }
+        // );
 
-      const result = await response.json();
+        // const result = await response.json();
 
-      if (response.ok && result.token) {
-        localStorage.setItem("authToken", result.token);
+        // if (response.ok && result.token) {
+        //   localStorage.setItem("authToken", result.token);
 
-        localStorage.setItem("user", JSON.stringify(result.data));
+        //   localStorage.setItem("user", JSON.stringify(result.data));
 
-        // router.push("/");
+        router.push("/");
       } else {
         setError("गलत प्रयोगकर्ता नाम वा पासवर्ड");
       }
