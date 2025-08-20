@@ -161,6 +161,54 @@ export function RegistrationStep1({
     onUpdate({ district, palika });
   };
 
+  // inside RegistrationStep1 component
+
+  // New local state for age input mode
+  const [manualAge, setManualAge] = useState<{ years: string; months: string }>(
+    {
+      years: "",
+      months: "",
+    }
+  );
+
+  // Back-calc DOB when user enters age manually
+  useEffect(() => {
+    if (manualAge.years || manualAge.months) {
+      const years = parseInt(manualAge.years || "0", 10);
+      const months = parseInt(manualAge.months || "0", 10);
+
+      if (!isNaN(years) || !isNaN(months)) {
+        const today = new Date();
+        const birthDate = new Date(
+          today.getFullYear() - years,
+          today.getMonth() - months,
+          today.getDate()
+        );
+
+        onUpdate({
+          dateOfBirth: birthDate.toISOString().split("T")[0],
+        });
+      }
+    }
+  }, [manualAge]);
+
+  // Reset manualAge when dateOfBirth is chosen directly
+  useEffect(() => {
+    if (data.dateOfBirth) {
+      const birth = new Date(data.dateOfBirth);
+      const today = new Date();
+
+      let years = today.getFullYear() - birth.getFullYear();
+      let months = today.getMonth() - birth.getMonth();
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+
+      setManualAge({ years: years.toString(), months: months.toString() });
+    }
+  }, [data.dateOfBirth]);
+
   return (
     <Card className="w-full max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-xl">
       {/* Header */}
@@ -288,7 +336,7 @@ export function RegistrationStep1({
 
             <div className="space-y-1">
               <Label htmlFor="dateOfBirth" className="text-sm">
-                जन्म मिति *
+                जन्म मिति * (वा उमेर)
               </Label>
               <Input
                 id="dateOfBirth"
@@ -299,6 +347,32 @@ export function RegistrationStep1({
                 className="text-sm px-2 py-1"
               />
 
+              {/* OR Age Input */}
+              {/* <div className="flex gap-2 mt-2">
+                <Input
+                  type="number"
+                  min="0"
+                  value={manualAge.years}
+                  onChange={(e) =>
+                    setManualAge({ ...manualAge, years: e.target.value })
+                  }
+                  placeholder="वर्ष"
+                  className="w-20 text-sm"
+                />
+                <Input
+                  type="number"
+                  min="0"
+                  max="11"
+                  value={manualAge.months}
+                  onChange={(e) =>
+                    setManualAge({ ...manualAge, months: e.target.value })
+                  }
+                  placeholder="महिना"
+                  className="w-20 text-sm"
+                />
+              </div> */}
+
+              {/* Eligibility Card */}
               {/* ✅ Eligibility Card */}
               {ageInfo && (
                 <div
@@ -314,20 +388,41 @@ export function RegistrationStep1({
                         ageInfo.eligible ? "text-green-600" : "text-red-600"
                       }`}
                     />
-                    <span
-                      className={`text-sm font-medium ${
-                        ageInfo.eligible ? "text-green-800" : "text-red-800"
-                      }`}
-                    >
-                      उमेर: {ageInfo.years} वर्ष {ageInfo.months} महिना
+
+                    {/* Editable उमेर */}
+                    <span className="flex items-center gap-1 text-sm font-medium">
+                      उमेर:
+                      <Input
+                        type="number"
+                        min="0"
+                        value={manualAge.years}
+                        onChange={(e) =>
+                          setManualAge({ ...manualAge, years: e.target.value })
+                        }
+                        className="w-14 h-6 px-1 text-xs"
+                      />
+                      वर्ष
+                      <Input
+                        type="number"
+                        min="0"
+                        max="11"
+                        value={manualAge.months}
+                        onChange={(e) =>
+                          setManualAge({ ...manualAge, months: e.target.value })
+                        }
+                        className="w-12 h-6 px-1 text-xs"
+                      />
+                      महिना
                     </span>
+
                     <Badge
                       variant={ageInfo.eligible ? "default" : "destructive"}
                       className="ml-auto"
                     >
-                      {ageInfo.eligible ? "योग्य" : "अयोग्य"}
+                      {ageInfo.eligible ? "योग्य" : ""}
                     </Badge>
                   </div>
+
                   {!ageInfo.eligible && (
                     <p className="text-red-700 text-xs mt-1">
                       स्वर्णबिन्दु प्राशन ६ महिनादेखि ५ वर्षसम्मका बालबालिकाका
@@ -336,6 +431,7 @@ export function RegistrationStep1({
                   )}
                 </div>
               )}
+
               {errors.dateOfBirth && (
                 <p className="text-red-500 text-sm flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" />
