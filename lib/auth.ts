@@ -24,8 +24,8 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       district: "दाङ",
     },
   },
-  premtiwari: {
-    password: "entry123", // Prem Tirwari: "Pre" + "ari"
+  volunteer1: {
+    password: "abcd1234", // Prem Tirwari: "Pre" + "ari"
     user: {
       id: "2",
       name: "Prem Kumar Tirwari",
@@ -34,8 +34,8 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       district: "दाङ",
     },
   },
-  nawarajdangi: {
-    password: "entry123", // Hari Acharya: "Har" + "ary"
+  volunteer2: {
+    password: "abcd1234", // Hari Acharya: "Har" + "ary"
     user: {
       id: "3",
       name: "Nawaraj Dangi",
@@ -44,8 +44,8 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       district: "दाङ",
     },
   },
-  rajanchaudhary: {
-    password: "entry123", // Ravi Lamichane: "Rav" + "ane"
+  volunteer3: {
+    password: "abcd1234", // Ravi Lamichane: "Rav" + "ane"
     user: {
       id: "4",
       name: "Rajan Chaudhary",
@@ -54,8 +54,8 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       district: "दाङ",
     },
   },
-  haririjal: {
-    password: "entry123", // Pratap Sharma: "Pra" + "rma"
+  volunteer4: {
+    password: "abcd1234", // Pratap Sharma: "Pra" + "rma"
     user: {
       id: "5",
       name: "Hari Rijal",

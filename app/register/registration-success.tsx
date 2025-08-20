@@ -474,10 +474,10 @@ export function RegistrationSuccess({
             <CardContent className="p-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="font-medium text-green-800">
-                    दर्ता नम्बर:
-                  </span>
-                  <p className="font-mono text-green-900">#{serialNumber}</p>
+                  <span className="font-medium text-green-800">दर्ता :</span>
+                  <p className="font-mono text-green-900">
+                    #{registrationData.childName}
+                  </p>
                 </div>
                 <div>
                   <span className="font-medium text-green-800">मिति:</span>
