@@ -255,9 +255,6 @@ export function RegistrationSuccess({
       };
 
       // setSerialNumber(registrationRecord.serial_no);
-      alert(
-        `Saving registration with serial number: ${registrationRecord.batch_number}`
-      );
 
       console.log("🌐 Attempting to save registration to Supabase...");
       console.log(registrationRecord);

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { User, Calendar, AlertCircle, Zap } from "lucide-react";
 import { DANG_PALIKAS, DISTRICTS_WITH_PALIKA } from "@/lib/constants";
+import { NepaliDatePicker } from "@/components/nepali-date-picker";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface RegistrationStep1Props {
@@ -57,6 +58,21 @@ export function RegistrationStep1({
   const commonNames = {
     male: ["Ram", "Shyam", "Hari", "Krishna"],
     female: ["Sita ", "Gita", "Radha", "Kamala"],
+  };
+  const commonJobs = {
+    male: [
+      "व्यापार", // Small local trade
+      "गोठालो ",
+      "खेतमा काम गर्ने", // Rice farming
+      "पशुपालन", // Herding / Animal husbandry
+      "काठ काट्ने / बनजंगलको काम", // Forestry / Woodcutting
+    ],
+    female: [
+      "घरधन्दा ", // Household work / Cooking
+      "खेतीमा सहयोग", // Helping in farming
+      "सुईधागो काम", // Handicraft / Sewing
+      "पशुपालन",
+    ],
   };
 
   // const commonFatherNames = [
@@ -320,7 +336,7 @@ export function RegistrationStep1({
                 placeholder="बालकको नाम लेख्नुहोस्"
                 className="text-sm px-2 py-1"
               />
-              {data.gender && (
+              {data.gender && !data.childName && (
                 <div className="flex flex-wrap gap-1 mt-1">
                   {commonNames[data.gender as keyof typeof commonNames]
                     ?.slice(0, 4)
@@ -329,7 +345,7 @@ export function RegistrationStep1({
                         key={name}
                         variant="outline"
                         size="sm"
-                        className="h-6 text-xs px-1 py-0"
+                        className="h-6 bg-gray-300 text-xs px-1 py-0"
                         onClick={() => quickFillName(name)}
                       >
                         {name}
@@ -366,46 +382,21 @@ export function RegistrationStep1({
               )}
             </div> */}
 
+            {/* Date of Birth */}
             <div className="space-y-1">
               <Label htmlFor="dateOfBirth" className="text-sm">
                 जन्म मिति * (वा उमेर)
               </Label>
-              <Input
-                id="dateOfBirth"
-                type="date"
+              <NepaliDatePicker
                 value={data.dateOfBirth}
-                onChange={(e) => onUpdate({ dateOfBirth: e.target.value })}
-                max={new Date().toISOString().split("T")[0]}
-                className="text-sm px-2 py-1"
+                onChange={(date) => onUpdate({ dateOfBirth: date })}
+                placeholder="जन्म मिति छान्नुहोस्"
+                className="text-sm"
               />
-
-              {/* OR Age Input */}
-              {/* <div className="flex gap-2 mt-2">
-                <Input
-                  type="number"
-                  min="0"
-                  value={manualAge.years}
-                  onChange={(e) =>
-                    setManualAge({ ...manualAge, years: e.target.value })
-                  }
-                  placeholder="वर्ष"
-                  className="w-20 text-sm"
-                />
-                <Input
-                  type="number"
-                  min="0"
-                  max="11"
-                  value={manualAge.months}
-                  onChange={(e) =>
-                    setManualAge({ ...manualAge, months: e.target.value })
-                  }
-                  placeholder="महिना"
-                  className="w-20 text-sm"
-                />
-              </div> */}
 
               {/* Eligibility Card */}
               {/* ✅ Eligibility Card */}
+              {/* Eligibility Card */}
               {ageInfo && (
                 <div
                   className={`p-3 rounded-lg mt-2 ${
@@ -414,18 +405,24 @@ export function RegistrationStep1({
                       : "bg-red-50 border border-red-200"
                   }`}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mb-2">
                     <Calendar
                       className={`h-4 w-4 ${
                         ageInfo.eligible ? "text-green-600" : "text-red-600"
                       }`}
                     />
+                    <span className="text-sm font-medium">
+                      जन्म मिति:{" "}
+                      {data.dateOfBirth
+                        ? new Date(data.dateOfBirth).toLocaleDateString("ne-NP")
+                        : "N/A"}
+                    </span>
+                  </div>
 
-                    {/* Editable उमेर */}
+                  <div className="flex items-center gap-2">
                     <span className="flex items-center gap-1 text-sm font-medium">
                       उमेर:
                       <Input
-                        // type="number"
                         min="0"
                         value={manualAge.years}
                         onChange={(e) =>
@@ -435,7 +432,6 @@ export function RegistrationStep1({
                       />
                       वर्ष
                       <Input
-                        // type="number"
                         min="0"
                         max="11"
                         value={manualAge.months}
@@ -499,15 +495,33 @@ export function RegistrationStep1({
                 className="text-sm px-2 py-1"
               />
               {data.fatherName.trim() && (
-                <Input
-                  id="fatherOccupation"
-                  value={data.fatherOccupation || ""}
-                  onChange={(e) =>
-                    onUpdate({ fatherOccupation: e.target.value })
-                  }
-                  placeholder="बुबाको पेशा"
-                  className="text-sm px-2 py-1 mt-1"
-                />
+                <>
+                  <Input
+                    id="fatherOccupation"
+                    value={data.fatherOccupation || ""}
+                    onChange={(e) =>
+                      onUpdate({ fatherOccupation: e.target.value })
+                    }
+                    placeholder="बुबाको पेशा"
+                    className="text-sm px-2 py-1 mt-1"
+                  />
+                  {/* Show suggestions only if input is empty */}
+                  {!data.fatherOccupation && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {commonJobs.male.map((job) => (
+                        <Button
+                          key={job}
+                          variant="outline"
+                          size="sm"
+                          className="h-6 bg-gray-300 text-xs px-1 py-0"
+                          onClick={() => onUpdate({ fatherOccupation: job })}
+                        >
+                          {job}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -522,15 +536,33 @@ export function RegistrationStep1({
                 className="text-sm px-2 py-1"
               />
               {data.motherName.trim() && (
-                <Input
-                  id="motherOccupation"
-                  value={data.motherOccupation || ""}
-                  onChange={(e) =>
-                    onUpdate({ motherOccupation: e.target.value })
-                  }
-                  placeholder="आमाको पेशा"
-                  className="text-sm px-2 py-1 mt-1"
-                />
+                <>
+                  <Input
+                    id="motherOccupation"
+                    value={data.motherOccupation || ""}
+                    onChange={(e) =>
+                      onUpdate({ motherOccupation: e.target.value })
+                    }
+                    placeholder="आमाको पेशा"
+                    className="text-sm px-2 py-1 mt-1"
+                  />
+                  {/* Show suggestions only if input is empty */}
+                  {!data.motherOccupation && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {commonJobs.female.map((job) => (
+                        <Button
+                          key={job}
+                          variant="outline"
+                          size="sm"
+                          className="h-6 bg-gray-300 text-xs px-1 py-0"
+                          onClick={() => onUpdate({ motherOccupation: job })}
+                        >
+                          {job}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
