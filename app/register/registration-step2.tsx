@@ -180,7 +180,9 @@ export function RegistrationStep2({
                 <Button
                   type="button"
                   variant={
-                    data.vaccinationStatus === "new" ? "default" : "outline"
+                    (data.vaccinationStatus ?? "new") === "new"
+                      ? "default"
+                      : "outline"
                   }
                   className="flex-1 flex items-center gap-1 text-sm py-1 rounded-2xl shadow-sm"
                   onClick={() =>

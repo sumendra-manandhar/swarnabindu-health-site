@@ -84,7 +84,7 @@ export default function RegisterPage() {
     healthConditions: [],
     allergies: "",
     previousMedications: "",
-    vaccinationStatus: "",
+    vaccinationStatus: "new",
     weight: "",
     height: "",
     muac: "",
@@ -217,7 +217,7 @@ export default function RegisterPage() {
             muac: "",
             headCircumference: "",
             chestCircumference: "",
-            age:'',
+            age: "",
 
             // Step 3 - Swarnabindu Details
             // administeredBy: registrationData.administeredBy, // Keep admin name

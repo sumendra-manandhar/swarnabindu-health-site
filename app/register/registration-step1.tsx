@@ -125,15 +125,7 @@ export function RegistrationStep1({
     // if (!data.dateOfBirth) newErrors.dateOfBirth = "जन्म मिति आवश्यक छ";
     if (!data.gender) newErrors.gender = "लिङ्ग छान्नुहोस्";
     if (!data.dateOfBirth) newErrors.dateOfBirth = " छान्नुहोस्";
-    // if (!data.contactNumber.trim())
-    //   newErrors.contactNumber = "सम्पर्क नम्बर आवश्यक छ";
-    // if (data.contactNumber && !/^[0-9]{10}$/.test(data.contactNumber)) {
-    //   newErrors.contactNumber = "१० अंकको मोबाइल नम्बर चाहिन्छ";
-    // }
-
-    // if (ageInfo && !ageInfo.eligible) {
-    //   newErrors.dateOfBirth = "६ महिनादेखि ५ वर्षसम्मका बालबालिकाका लागि मात्र";
-    // }
+    if (!data.palika) newErrors.palika = " छान्नुहोस्";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -282,6 +274,12 @@ export function RegistrationStep1({
                     {idx + 1}. {palika}
                   </option>
                 ))}
+                {errors.palika && (
+                  <p className="text-red-500 text-sm flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {errors.palika}
+                  </p>
+                )}
               </select>
             </div>
             <h3 className="text-blue-700 font-semibold text-sm">
