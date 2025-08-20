@@ -63,8 +63,10 @@ const snakeCaseMap: Record<string, string> = {
 };
 
 /* Convert camelCase data to snake_case & filter out extra keys */
-function sanitizeRegistration(data: Record<string, any>) {
-  const sanitized: Record<string, any> = {};
+function sanitizeRegistration(
+  data: Record<string, unknown>
+): Record<string, unknown> {
+  const sanitized: Record<string, unknown> = {};
   for (const key in snakeCaseMap) {
     if (data[key] !== undefined) {
       sanitized[snakeCaseMap[key]] = data[key];
