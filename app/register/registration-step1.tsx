@@ -108,31 +108,39 @@ export function RegistrationStep1({
     }
   }, [data.dateOfBirth]);
 
-  const calculateAge = (birthDate: string) => {
-    const birth = new Date(birthDate);
-    const today = new Date();
+const calculateAge = (birthDate: string) => {
+  const birth = new Date(birthDate);
+  const today = new Date();
 
-    let years = today.getFullYear() - birth.getFullYear();
-    let months = today.getMonth() - birth.getMonth();
+  let years = today.getFullYear() - birth.getFullYear();
+  let months = today.getMonth() - birth.getMonth();
 
-    if (months < 0) {
-      years--;
-      months += 12;
-    }
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
 
-    const totalMonths = years * 12 + months;
-    const eligible = totalMonths >= 6 && totalMonths <= 60; // 6 months to 5 years
+  const totalMonths = years * 12 + months;
+  const eligible = totalMonths >= 6 && totalMonths <= 60; // 6 months to 5 years
 
-    setAgeInfo({ years, months, eligible });
+  setAgeInfo({ years, months, eligible });
 
-    // Auto-calculate dose amount based on age
-    let doseAmount = "";
-    if (totalMonths >= 6 && totalMonths <= 12) doseAmount = "1";
-    else if (totalMonths > 12 && totalMonths <= 24) doseAmount = "2";
-    else if (totalMonths > 24 && totalMonths <= 60) doseAmount = "4";
+  // ✅ Build formatted age string
+  const ageString = `${years} वर्ष ${months} महिना`;
 
-    onUpdate({ doseAmount });
-  };
+  // Auto-calculate dose amount based on age
+  let doseAmount = "";
+  if (totalMonths >= 6 && totalMonths <= 12) doseAmount = "1";
+  else if (totalMonths > 12 && totalMonths <= 24) doseAmount = "2";
+  else if (totalMonths > 24 && totalMonths <= 60) doseAmount = "4";
+
+  // ✅ Send to parent
+  onUpdate({ 
+    doseAmount, 
+    age: ageString   // <-- send age string to payload
+  });
+};
+
 
   const validateStep = () => {
     const newErrors: Record<string, string> = {};

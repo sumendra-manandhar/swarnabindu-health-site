@@ -227,6 +227,7 @@ export function RegistrationSuccess({
         gender: registrationData.gender,
         child_name: registrationData.childName,
         date_of_birth: registrationData.dateOfBirth,
+        age: registrationData.age,
         guardian_name: registrationData.guardianName,
         father_name: registrationData.fatherName,
         mother_name: registrationData.motherName,
