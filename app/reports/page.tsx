@@ -132,7 +132,7 @@ export default function ReportsPage() {
           );
 
           const mappedServerData = (serverRegistrations || []).map(
-            (record: any) => ({
+            (record) => ({
               id: record.id,
               childName:
                 record.childName || record.child_name || record.name || "",
