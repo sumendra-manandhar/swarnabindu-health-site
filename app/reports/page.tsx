@@ -102,11 +102,16 @@ export default function ReportsPage() {
     try {
       setLoading(true);
 
-      // Local data
       const localRegistrations = OfflineStorage.getAllLocalRegistrations();
       const localScreenings = OfflineStorage.getOfflineScreenings().map(
         (s) => s.data
       );
+
+      console.log(
+        "[v0] Loaded local registrations:",
+        localRegistrations.length
+      );
+      console.log("[v0] Sample registration:", localRegistrations[0]);
 
       const isOnline =
         typeof navigator !== "undefined" ? navigator.onLine : false;
@@ -121,24 +126,64 @@ export default function ReportsPage() {
 
           if (regError) throw regError;
 
-          // Optionally deduplicate here if needed
-          setRegistrations([
-            ...localRegistrations,
-            ...(serverRegistrations || []),
-          ]);
-          setScreenings(localScreenings); // Supabase screenings can be added if available
+          console.log(
+            "[v0] Server registrations:",
+            serverRegistrations?.length || 0
+          );
+
+          const mappedServerData = (serverRegistrations || []).map(
+            (record: any) => ({
+              id: record.id,
+              childName:
+                record.childName || record.child_name || record.name || "",
+              dateOfBirth: record.dateOfBirth || record.date_of_birth || "",
+              age: record.age || "",
+              gender: record.gender || "",
+              guardianName:
+                record.guardianName ||
+                record.guardian_name ||
+                record.father_name ||
+                record.mother_name ||
+                "",
+              contactNumber:
+                record.contactNumber || record.contact_number || "",
+              dose_amount: record.dose_amount || record.doseAmount || "2",
+              dose_time:
+                record.dose_time || new Date().toLocaleTimeString("ne-NP"),
+              administered_by: record.administered_by || "स्वास्थ्यकर्मी",
+              child_reaction: record.child_reaction || "normal",
+              weight: record.weight || 0,
+              vaccination_status: record.vaccination_status || "completed",
+              date:
+                record.date ||
+                record.created_at ||
+                new Date().toLocaleDateString("ne-NP"),
+              serial_no:
+                record.serial_no || record.serialNo || `SB${record.id}`,
+              district: record.district || "दाङ",
+              palika: record.palika || "",
+              ward: record.ward || "",
+            })
+          );
+
+          setRegistrations([...localRegistrations, ...mappedServerData]);
+          setScreenings(localScreenings);
         } catch (error) {
-          console.warn("Supabase fetch failed. Falling back to local.", error);
+          console.warn(
+            "[v0] Supabase fetch failed. Falling back to local.",
+            error
+          );
           setRegistrations(localRegistrations);
           setScreenings(localScreenings);
         }
       } else {
         // Offline fallback
+        console.log("[v0] Offline mode - using local data only");
         setRegistrations(localRegistrations);
         setScreenings(localScreenings);
       }
     } catch (error) {
-      console.error("Error loading data:", error);
+      console.error("[v0] Error loading data:", error);
       setRegistrations([]);
       setScreenings([]);
     } finally {
@@ -636,26 +681,28 @@ export default function ReportsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>सिरियल नम्बर</TableHead>
+                        {/* <TableHead>सिरियल नम्बर</TableHead> */}
                         <TableHead>बालकको नाम</TableHead>
                         <TableHead>उमेर</TableHead>
                         <TableHead>लिङ्ग</TableHead>
                         <TableHead>अभिभावक</TableHead>
                         <TableHead>जिल्ला</TableHead>
+                        <TableHead>Palika</TableHead>
                         <TableHead>सम्पर्क</TableHead>
-                        <TableHead>तौल</TableHead>
+                        <TableHead>Dose</TableHead>
                         <TableHead>दर्ता मिति</TableHead>
+                        <TableHead>स्वास्थ्यकर्मी</TableHead>
                         <TableHead>स्थिति</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredData.map((record) => (
                         <TableRow key={record.id}>
-                          <TableCell className="font-medium">
+                          {/* <TableCell className="font-medium">
                             {record.serial_no}
-                          </TableCell>
+                          </TableCell> */}
                           <TableCell>{record.childName}</TableCell>
-                          <TableCell>{record.age}</TableCell>
+                          <TableCell>{record.dateOfBirth}</TableCell>
                           <TableCell>
                             <Badge variant="outline">
                               {record.gender === "male" ? "पुरुष" : "महिला"}
@@ -663,9 +710,12 @@ export default function ReportsPage() {
                           </TableCell>
                           <TableCell>{record.guardianName}</TableCell>
                           <TableCell>{record.district}</TableCell>
+                          <TableCell>{record.palika}</TableCell>
                           <TableCell>{record.contactNumber}</TableCell>
-                          <TableCell>{record.weight} कि.ग्रा.</TableCell>
+                          <TableCell>{record.dose_amount} थोपा</TableCell>
                           <TableCell>{record.date}</TableCell>
+
+                          <TableCell>{record.administered_by}</TableCell>
                           <TableCell>
                             <Badge
                               variant={

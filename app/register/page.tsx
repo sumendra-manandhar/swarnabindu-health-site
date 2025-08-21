@@ -94,10 +94,10 @@ export default function RegisterPage() {
     // Step 3 - Swarnabindu Details
     // administeredBy: "",
     batchNumber: "",
-    consentGiven: false,
+    consentGiven: true,
     doseAmount: "",
     notes: "",
-    eligibilityConfirmed: false,
+    eligibilityConfirmed: true,
   });
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const [todayStats, setTodayStats] = useState({

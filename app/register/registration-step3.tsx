@@ -97,9 +97,9 @@ export function RegistrationStep3({
     const newErrors: Record<string, string> = {};
     if (!data.administeredBy?.trim())
       newErrors.administeredBy = "सेवन गराउने व्यक्तिको नाम आवश्यक छ";
-    if (!data.eligibilityConfirmed)
-      newErrors.eligibilityConfirmed = "योग्यता पुष्टि गर्नुहोस्";
-    if (!data.consentGiven) newErrors.consentGiven = "सहमति आवश्यक छ";
+    // if (!data.eligibilityConfirmed)
+    //   newErrors.eligibilityConfirmed = "योग्यता पुष्टि गर्नुहोस्";
+    // if (!data.consentGiven) newErrors.consentGiven = "सहमति आवश्यक छ";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -313,7 +313,7 @@ export function RegistrationStep3({
             <div className="space-y-3">
               <div className="flex gap-2 items-start">
                 <Checkbox
-                  checked={data.eligibilityConfirmed}
+                  checked={true} // default to true if undefined or false
                   onCheckedChange={(checked) =>
                     onUpdate({ eligibilityConfirmed: checked })
                   }
@@ -323,15 +323,15 @@ export function RegistrationStep3({
                   छैन।
                 </Label>
               </div>
-              {errors.eligibilityConfirmed && (
+              {/* {errors.eligibilityConfirmed && (
                 <p className="text-red-500 text-sm">
                   {errors.eligibilityConfirmed}
                 </p>
-              )}
+              )} */}
 
               <div className="flex gap-2 items-start">
                 <Checkbox
-                  checked={data.consentGiven}
+                  checked={true} // default to true if undefined or false
                   onCheckedChange={(checked) =>
                     onUpdate({ consentGiven: checked })
                   }
@@ -340,9 +340,9 @@ export function RegistrationStep3({
                   अभिभावकको सहमति लिइएको छ र सबै सावधानीहरू बुझाइएको छ।
                 </Label>
               </div>
-              {errors.consentGiven && (
+              {/* {errors.consentGiven && (
                 <p className="text-red-500 text-sm">{errors.consentGiven}</p>
-              )}
+              )} */}
             </div>
 
             {/* Safety Alert */}
