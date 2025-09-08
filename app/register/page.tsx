@@ -1,28 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  ArrowLeft,
-  Users,
-  Clock,
-  CheckCircle,
-  AlertTriangle,
-} from "lucide-react";
-import Link from "next/link";
-// import { RegistrationStep1 } from "@/components/registration-step1"
-// import { RegistrationStep2 } from "@/components/registration-step2"
-// import { RegistrationStep3 } from "@/components/registration-step3"
-// import { RegistrationSuccess } from "@/components/registration-success"
-import { OfflineStorage } from "@/lib/offline-storage";
+import { ArrowLeft, CheckCircle, AlertTriangle, Search } from "lucide-react";
+
 import { RegistrationStep1 } from "./registration-step1";
 import { RegistrationStep2 } from "./registration-step2";
-import { RegistrationStep3 } from "./registration-step3";
+import { RegistrationStep3 } from "./registration-step3"; // volunteer only
 import { RegistrationSuccess } from "./registration-success";
+import { supabase } from "@/lib/supabase";
 
 interface RegistrationData {
   // Step 1 - Child Info
@@ -34,13 +25,12 @@ interface RegistrationData {
   motherName: string;
   fatherOccupation: string;
   motherOccupation: string;
-
   contactNumber: string;
   district: string;
   palika: string;
+  age: string;
 
   // Step 2 - Health condition
-
   healthConditions: string[];
   allergies: string;
   previousMedications: string;
@@ -51,21 +41,29 @@ interface RegistrationData {
   headCircumference: string;
   chestCircumference: string;
 
-  // Step 3 - Swarnabindu Details
-  // administeredBy: string;
-  batchNumber: string;
-  consentGiven: boolean;
-  doseAmount: string;
-  notes: string;
-  eligibilityConfirmed: boolean;
-  age: string;
+  // Volunteer Step 3
+  batchNumber?: string;
+  consentGiven?: boolean;
+  doseAmount?: string;
+  notes?: string;
+  eligibilityConfirmed?: boolean;
+
+  // Auto-generated
+  uniqueId?: string;
 }
 
 export default function RegisterPage() {
+  const searchParams = useSearchParams();
+  // const mode = searchParams.get("mode") || "volunteer"; // default to volunteer
+
+  const pathname = usePathname();
+  const mode = pathname.includes("/selfregister") ? "self" : "volunteer";
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isOnline, setIsOnline] = useState(true);
+  const [registrationComplete, setRegistrationComplete] = useState(false);
+
   const [registrationData, setRegistrationData] = useState<RegistrationData>({
-    // Step 1 - Child Info
     gender: "",
     childName: "",
     dateOfBirth: "",
@@ -74,13 +72,11 @@ export default function RegisterPage() {
     motherName: "",
     fatherOccupation: "",
     motherOccupation: "",
-
     contactNumber: "",
     district: "",
     palika: "",
     age: "",
 
-    // Step 2 - Health condition
     healthConditions: [],
     allergies: "",
     previousMedications: "",
@@ -90,103 +86,192 @@ export default function RegisterPage() {
     muac: "",
     headCircumference: "",
     chestCircumference: "",
-
-    // Step 3 - Swarnabindu Details
-    // administeredBy: "",
-    batchNumber: "",
-    consentGiven: true,
-    doseAmount: "",
-    notes: "",
-    eligibilityConfirmed: true,
-  });
-  const [registrationComplete, setRegistrationComplete] = useState(false);
-  const [todayStats, setTodayStats] = useState({
-    registered: 0,
-    pending: 0,
-    target: 100,
   });
 
   useEffect(() => {
     setIsOnline(navigator.onLine);
-    loadTodayStats();
-
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
-
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
 
-  const loadTodayStats = () => {
-    const today = new Date().toISOString().split("T")[0];
-    const allRegistrations = OfflineStorage.getAllLocalRegistrations();
-    const todayRegistrations = allRegistrations.filter(
-      (reg) => reg.date?.startsWith(today) || reg.created_at?.startsWith(today)
-    );
-
-    setTodayStats({
-      registered: todayRegistrations.length,
-      pending: OfflineStorage.getPendingCount(),
-      target: 100,
-    });
-  };
-
   const updateRegistrationData = (stepData: Partial<RegistrationData>) => {
     setRegistrationData((prev) => ({ ...prev, ...stepData }));
   };
 
+  useEffect(() => {
+    const step = searchParams.get("step");
+    if (step === "3") {
+      const stored = localStorage.getItem("prefillData");
+      if (stored) {
+        const parsed: RegistrationData = JSON.parse(stored);
+        setRegistrationData(parsed);
+        setCurrentStep(3);
+      }
+    }
+  }, [searchParams]);
+  // alert(mode);
+
+  useEffect(() => {
+    const step = searchParams.get("step");
+    if (step === "3") {
+      const stored = localStorage.getItem("prefillData");
+      if (stored) {
+        const parsed: RegistrationData = JSON.parse(stored);
+        setRegistrationData(parsed);
+        setCurrentStep(3);
+      }
+    }
+  }, [searchParams]);
+
   const nextStep = () => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
+    if (mode === "self") {
+      // ✅ Self registration (only 2 steps)
+      if (currentStep < 2) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        completeRegistration();
+      }
+    } else {
+      // ✅ Volunteer registration (3 steps)
+      if (currentStep < 3) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        completeRegistration();
+      }
     }
   };
 
   const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
   const completeRegistration = () => {
-    setRegistrationComplete(true);
-    loadTodayStats(); // Refresh stats
-  };
+    if (mode === "self") {
+      // Generate unique ID for self-registrants
+      const id = "REG-" + Math.floor(100000 + Math.random() * 900000);
+      localStorage.setItem("registrationId", id);
+      const finalData = { ...registrationData, uniqueId: id };
+      setRegistrationData(finalData);
 
-  const getStepTitle = (step: number) => {
-    switch (step) {
-      case 1:
-        return "बालकको जानकारी";
-      case 2:
-        return "ठेगाना र स्वास्थ्य";
-      case 3:
-        return "स्वर्णबिन्दु विवरण";
-      default:
-        return "";
+      // Auto-download ID
+      const blob = new Blob([`Your Registration ID: ${id}`], {
+        type: "text/plain",
+      });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "registration_id.txt";
+      link.click();
+
+      alert("thisss");
+
+      setRegistrationComplete(true);
+
+      saveSelfRegistration();
+      // TODO: send `finalData` to self-registration table (API call)
+    } else {
+      // Volunteer registration complete
+      setRegistrationComplete(true);
+
+      // TODO: send `registrationData` to main registration table (API call)
     }
   };
 
-  const getStepIcon = (step: number) => {
-    if (step < currentStep)
-      return <CheckCircle className="h-5 w-5 text-green-600" />;
-    if (step === currentStep)
-      return (
-        <div className="h-5 w-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
-          {step}
-        </div>
+  const saveSelfRegistration = async () => {
+    try {
+      // Generate unique ID for self-registrant
+      const uniqueId = localStorage.getItem("registrationId") || "";
+
+      const registrationRecord = {
+        unique_id: uniqueId, // new field for self registration
+        gender: registrationData.gender,
+        child_name: registrationData.childName,
+        date_of_birth: registrationData.dateOfBirth,
+        age: registrationData.age,
+        guardian_name: registrationData.guardianName,
+        father_name: registrationData.fatherName,
+        mother_name: registrationData.motherName,
+        father_occupation: registrationData.fatherOccupation,
+        mother_occupation: registrationData.motherOccupation,
+        contact_number: registrationData.contactNumber,
+        district: registrationData.district,
+        palika: registrationData.palika,
+        health_conditions: registrationData.healthConditions || [],
+        allergies: registrationData.allergies,
+        previous_medications: registrationData.previousMedications,
+        vaccination_status: registrationData.vaccinationStatus,
+        weight: registrationData.weight,
+        height: registrationData.height,
+        muac: registrationData.muac,
+        head_circumference: registrationData.headCircumference,
+        chest_circumference: registrationData.chestCircumference,
+        created_at: new Date().toISOString(),
+      };
+      alert("yaha");
+
+      console.log("🌐 Attempting to save self-registration to Supabase...");
+      console.log(registrationRecord);
+
+      const { data, error } = await supabase
+        .from("self_registrations") // separate table
+        .insert([registrationRecord]);
+
+      if (error) {
+        console.error("❌ Supabase insert error:", error);
+        throw error; // fallback to offline
+      }
+
+      console.log("✅ Self-registration saved to Supabase:", data);
+      return uniqueId; // return ID for download or display
+    } catch (error) {
+      console.error(
+        "⚠️ Error saving self-registration, saving offline instead:",
+        error
       );
-    return (
-      <div className="h-5 w-5 rounded-full bg-gray-300 text-gray-600 flex items-center justify-center text-sm font-bold">
-        {step}
-      </div>
-    );
+    }
   };
 
   if (registrationComplete) {
+    if (mode === "self") {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
+          <div className="max-w-md w-full bg-white p-6 rounded-xl shadow-lg text-center space-y-4">
+            <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
+            <h1 className="text-xl font-bold text-gray-900">
+              Registration Successful 🎉
+            </h1>
+            <p className="text-gray-700">
+              Your Registration ID is:
+              <br />
+              <span className="text-2xl font-bold text-blue-700">
+                {registrationData.uniqueId}
+              </span>
+            </p>
+            <p className="text-sm text-gray-600">
+              This ID has been downloaded on your device. Please show it to a
+              volunteer for final verification.
+            </p>
+
+            <Button
+              onClick={() => {
+                setRegistrationComplete(false);
+                setCurrentStep(1);
+                // Reset registrationData except district/palika if needed
+              }}
+            >
+              New Registration
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // Volunteer success
     return (
       <RegistrationSuccess
         registrationData={registrationData}
@@ -194,20 +279,18 @@ export default function RegisterPage() {
           setRegistrationComplete(false);
           setCurrentStep(1);
           setRegistrationData({
-            // Step 1 - Child Info
+            gender: "",
             childName: "",
             dateOfBirth: "",
-            gender: "",
             fatherName: "",
             motherName: "",
             guardianName: "",
             fatherOccupation: "",
             motherOccupation: "",
             contactNumber: "",
-            district: registrationData.district, // Keep location data
+            district: registrationData.district,
             palika: registrationData.palika,
-
-            // Step 2 - Health condition
+            age: "",
             healthConditions: [],
             allergies: "",
             previousMedications: "",
@@ -217,10 +300,6 @@ export default function RegisterPage() {
             muac: "",
             headCircumference: "",
             chestCircumference: "",
-            age: "",
-
-            // Step 3 - Swarnabindu Details
-            // administeredBy: registrationData.administeredBy, // Keep admin name
             batchNumber: "",
             consentGiven: false,
             doseAmount: "",
@@ -233,7 +312,9 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    // <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+
+    <div>
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -241,14 +322,22 @@ export default function RegisterPage() {
             <Link href="/">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                फिर्ता
+                Back
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                नयाँ दर्ता | New Registration
-              </h1>
-              <p className="text-gray-600">स्वर्णबिन्दु प्राशन कार्यक्रम</p>
+              <div className="flex gap-4">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {mode === "self" ? "Self Registration" : "New Registration"}
+                </h1>
+                <Link href="/selfregistered">
+                  <Button className="bg-blue-600 hover:bg-blue-700 rounded-full p-2">
+                    <Search className="h-5 w-5 text-white" />
+                  </Button>
+                </Link>
+              </div>
+
+              <p className="text-gray-600">Swarnabindu Program</p>
             </div>
           </div>
 
@@ -260,90 +349,12 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* Today's Stats */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="border-green-200 bg-green-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="h-8 w-8 text-green-600" />
-                <div>
-                  <p className="text-sm font-medium text-green-800">
-                    आजको दर्ता
-                  </p>
-                  <p className="text-2xl font-bold text-green-900">
-                    {todayStats.registered}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Clock className="h-8 w-8 text-yellow-600" />
-                <div>
-                  <p className="text-sm font-medium text-yellow-800">
-                    सिंक पेन्डिङ
-                  </p>
-                  <p className="text-2xl font-bold text-yellow-900">
-                    {todayStats.pending}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Users className="h-8 w-8 text-blue-600" />
-                <div>
-                  <p className="text-sm font-medium text-blue-800">
-                    लक्ष्य प्रगति
-                  </p>
-                  <p className="text-2xl font-bold text-blue-900">
-                    {todayStats.registered}/{todayStats.target}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div> */}
-
-        {/* Progress Bar */}
-        {/* <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              {[1, 2, 3].map((step) => (
-                <div key={step} className="flex items-center">
-                  <div className="flex flex-col items-center">
-                    {getStepIcon(step)}
-                    <span className="text-xs mt-2 font-medium text-center max-w-20">
-                      {getStepTitle(step)}
-                    </span>
-                  </div>
-                  {step < 3 && (
-                    <div
-                      className={`h-1 w-24 mx-4 rounded-full ${
-                        step < currentStep ? "bg-green-500" : "bg-gray-300"
-                      }`}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-            <Progress value={(currentStep / 3) * 100} className="h-2" />
-          </CardContent>
-        </Card> */}
-
         {/* Offline Warning */}
         {!isOnline && (
           <Alert className="mb-6">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              तपाईं अफलाइन काम गर्दै हुनुहुन्छ। डाटा स्थानीय रूपमा सेभ हुनेछ र
-              इन्टरनेट जडान भएपछि सिंक हुनेछ।
+              You are offline. Data will be saved locally and synced later.
             </AlertDescription>
           </Alert>
         )}
@@ -365,7 +376,7 @@ export default function RegisterPage() {
               onPrev={prevStep}
             />
           )}
-          {currentStep === 3 && (
+          {mode === "volunteer" && currentStep === 3 && (
             <RegistrationStep3
               data={registrationData}
               onUpdate={updateRegistrationData}

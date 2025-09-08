@@ -535,13 +535,13 @@ export function RegistrationSuccess({
 
           {/* Navigation */}
           <div className="flex justify-center gap-4">
-            <Link href="/">
+            <Link href="/selfregistered">
               <Button
                 variant="outline"
                 className="flex items-center gap-2 bg-transparent"
               >
                 <Home className="h-4 w-4" />
-                होम पेज
+                होम पेज | Pre Registered Entry
               </Button>
             </Link>
 

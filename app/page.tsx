@@ -41,6 +41,11 @@ export default function Home() {
     todayRegistrations: 0,
     totalScreenings: 0,
     pendingSync: 0,
+    // 👇 added
+    totalSelfPatients: 0,
+    maleSelfPatients: 0,
+    femaleSelfPatients: 0,
+    todaySelfRegistrations: 0,
   });
 
   const [isOnline, setIsOnline] = useState(true);
@@ -65,7 +70,7 @@ export default function Home() {
   const loadStatistics = async () => {
     setLoading(true);
     try {
-      // Offline data
+      // Offline data (unchanged)
       const offlineRegistrations = OfflineStorage.getOfflineRegistrations();
       const offlineScreenings = OfflineStorage.getOfflineScreenings();
 
@@ -87,16 +92,19 @@ export default function Home() {
         femalePatients: 0,
         totalScreenings: 0,
         todayRegistrations: 0,
+        // 👇 added
+        totalSelfPatients: 0,
+        maleSelfPatients: 0,
+        femaleSelfPatients: 0,
+        todaySelfRegistrations: 0,
       };
 
       if (isOnline) {
         try {
-          // Get all registrations for total counts
-          const { data: registrations, error: regError } = await supabase
+          // Registrations (existing)
+          const { data: registrations } = await supabase
             .from("registrations")
             .select("id, gender");
-
-          if (regError) throw regError;
 
           if (registrations) {
             onlineStats.totalPatients = registrations.length;
@@ -108,32 +116,54 @@ export default function Home() {
             ).length;
           }
 
-          // Get today's registrations count
-          const { data: todayRegs, error: todayError } = await supabase
+          const { data: todayRegs } = await supabase
             .from("registrations")
             .select("id")
             .gte("created_at", startOfDay)
             .lte("created_at", endOfDay);
 
-          if (todayError) throw todayError;
-
           onlineStats.todayRegistrations = todayRegs ? todayRegs.length : 0;
 
-          // Get total screenings
-          const { data: screenings, error: screenError } = await supabase
+          // Screenings
+          const { data: screenings } = await supabase
             .from("screenings")
             .select("id");
-
-          if (screenError) throw screenError;
-
           if (screenings) {
             onlineStats.totalScreenings = screenings.length;
           }
+
+          // 👇 NEW: Self Registrations
+          const { data: selfRegs } = await supabase
+            .from("self_registrations")
+            .select("id, gender");
+
+          // alert("selfRegs: " + JSON.stringify(selfRegs));
+
+          if (selfRegs) {
+            onlineStats.totalSelfPatients = selfRegs.length;
+            onlineStats.maleSelfPatients = selfRegs.filter(
+              (p) => p.gender === "male"
+            ).length;
+            onlineStats.femaleSelfPatients = selfRegs.filter(
+              (p) => p.gender === "female"
+            ).length;
+          }
+
+          const { data: todaySelfRegs } = await supabase
+            .from("self_registrations")
+            .select("id")
+            .gte("created_at", startOfDay)
+            .lte("created_at", endOfDay);
+
+          onlineStats.todaySelfRegistrations = todaySelfRegs
+            ? todaySelfRegs.length
+            : 0;
         } catch (error) {
           console.warn("Failed to load online stats:", error);
         }
       }
 
+      // Merge online + offline into UI state
       setStats({
         totalPatients: onlineStats.totalPatients + offlineRegistrations.length,
         malePatients:
@@ -148,6 +178,11 @@ export default function Home() {
           onlineStats.todayRegistrations + todayRegsOffline.length,
         totalScreenings: onlineStats.totalScreenings + offlineScreenings.length,
         pendingSync: offlineRegistrations.filter((reg) => !reg.synced).length,
+        // 👇 keep self-registration values separate
+        totalSelfPatients: onlineStats.totalSelfPatients,
+        maleSelfPatients: onlineStats.maleSelfPatients,
+        femaleSelfPatients: onlineStats.femaleSelfPatients,
+        todaySelfRegistrations: onlineStats.todaySelfRegistrations,
       });
     } catch (error) {
       console.error("Error loading statistics:", error);
@@ -229,14 +264,22 @@ export default function Home() {
               </CardTitle>
               <Calendar className="h-5 w-5 text-green-600" />
             </CardHeader>
-            <CardContent>
-              <div className="text-5xl font-bold text-green-800">
-                {stats.todayRegistrations}
-              </div>
-              <p className="text-xs text-green-600 mt-1">
-                New registrations today
-              </p>
-            </CardContent>
+            <div className="flex align-bottom justify-between gap-2 p-4">
+              <CardContent>
+                <div className="text-5xl font-bold text-green-800">
+                  {stats.todayRegistrations}
+                </div>
+                <p className="text-xs text-green-600 mt-1">
+                  New registrations today
+                </p>
+              </CardContent>
+              <CardContent>
+                <div className="text-3xl font-bold text-shadow-amber-400">
+                  {stats.todayRegistrations}
+                </div>
+                <p className="text-xs text-green-600 mt-1">Self Registered</p>
+              </CardContent>
+            </div>
           </Card>
 
           <Card className="border-2 border-purple-200 shadow-lg hover:shadow-xl transition-shadow">
@@ -378,6 +421,25 @@ export default function Home() {
             </CardHeader>
             <CardContent className="text-center">
               <Link href="/reports">
+                <Button className="w-full bg-orange-600 hover:bg-orange-700">
+                  <FileText className="h-4 w-4 mr-2" />
+                  रिपोर्ट हेर्नुहोस् | View Reports
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+          <Card className="border-2 border-orange-200 shadow-lg hover:shadow-xl transition-all hover:scale-105">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <BarChart3 className="h-8 w-8 text-orange-600" />
+              </div>
+              <CardTitle className="text-orange-800">Pre Registed</CardTitle>
+              <CardDescription>
+                Generate and view program reports
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Link href="/selfregistered">
                 <Button className="w-full bg-orange-600 hover:bg-orange-700">
                   <FileText className="h-4 w-4 mr-2" />
                   रिपोर्ट हेर्नुहोस् | View Reports
