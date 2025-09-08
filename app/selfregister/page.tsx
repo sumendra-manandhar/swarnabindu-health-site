@@ -1,12 +1,11 @@
-"use client";
+// app/selfregister/page.tsx
+import { Suspense } from "react";
+import SelfRegisterWrapper from "./self-register-wrapper";
 
-import RegisterPage from "../register/page";
-import { useSearchParams } from "next/navigation";
-
-export default function SelfRegisterWrapper() {
-  // Always force mode=self
-  const params = new URLSearchParams();
-  params.set("mode", "self");
-
-  return <RegisterPage key="self" />;
+export default function SelfRegisterPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SelfRegisterWrapper />
+    </Suspense>
+  );
 }
