@@ -15,6 +15,75 @@ import { RegistrationStep3 } from "./registration-step3"; // volunteer only
 import { RegistrationSuccess } from "./registration-success";
 import { supabase } from "@/lib/supabase";
 
+import QRCode from "qrcode";
+import { QRCodeCanvas } from "qrcode.react";
+import jsPDF from "jspdf";
+
+export async function downloadRegistrationPDF(registrationData: {
+  uniqueId: string;
+  childName: string;
+  dateOfBirth: string;
+  contactNumber: string;
+}) {
+  const { uniqueId, childName, dateOfBirth, contactNumber } = registrationData;
+
+  const pdf = new jsPDF("p", "mm", "a4");
+  const pageWidth = pdf.internal.pageSize.getWidth();
+
+  // Draw card background (rounded rectangle)
+  pdf.setFillColor(255, 255, 255);
+  pdf.roundedRect(20, 30, pageWidth - 40, 200, 6, 6, "F");
+
+  // Header icon (check circle)
+  pdf.setDrawColor(34, 197, 94); // green
+  pdf.setLineWidth(2);
+  pdf.circle(pageWidth / 2, 50, 10); // circle
+  pdf.setFontSize(20);
+  pdf.setTextColor(34, 197, 94);
+  pdf.text("✔", pageWidth / 2 - 4, 57);
+
+  // Title
+  pdf.setFontSize(16);
+  pdf.setTextColor(0, 0, 0);
+  pdf.text("Registration Successful 🎉", pageWidth / 2, 80, {
+    align: "center",
+  });
+
+  // Registration ID label
+  pdf.setFontSize(12);
+  pdf.setTextColor(80, 80, 80);
+  pdf.text("Your Registration ID is:", pageWidth / 2, 95, {
+    align: "center",
+  });
+
+  // Registration ID
+  pdf.setFontSize(20);
+  pdf.setTextColor(30, 64, 175); // blue-700
+  pdf.text(uniqueId, pageWidth / 2, 110, { align: "center" });
+
+  // QR Code
+  const qrData = JSON.stringify({
+    uniqueId,
+    childName,
+    dateOfBirth,
+    contactNumber,
+  });
+  const qrUrl = await QRCode.toDataURL(qrData, { width: 150 });
+  pdf.addImage(qrUrl, "PNG", pageWidth / 2 - 30, 120, 60, 60);
+
+  // Footer
+  pdf.setFontSize(10);
+  pdf.setTextColor(100, 100, 100);
+  pdf.text(
+    "This ID has been downloaded on your device. Please show it to a volunteer for final verification.",
+    pageWidth / 2,
+    190,
+    { align: "center", maxWidth: pageWidth - 60 }
+  );
+
+  pdf.save(`registration_${uniqueId}.pdf`);
+}
+
 interface RegistrationData {
   // Step 1 - Child Info
   gender: string;
@@ -168,9 +237,25 @@ export default function RegisterPage() {
       link.download = "registration_id.txt";
       link.click();
 
-      // alert("thisss");
+      // Generate PDF with QR
+      // generateRegistrationPDF({
+      //   uniqueId: id,
+      //   childName: registrationData.childName,
+      //   dateOfBirth: registrationData.dateOfBirth,
+      //   contactNumber: registrationData.contactNumber,
+      // });
 
+      // alert("thisss");
       setRegistrationComplete(true);
+
+      // ✅ Call new PDF function
+      downloadRegistrationPDF({
+        uniqueId: id,
+        childName: registrationData.childName,
+        dateOfBirth: registrationData.dateOfBirth,
+        contactNumber: registrationData.contactNumber,
+      });
+      // alert("Your Registration ID has been downloaded.");
 
       saveSelfRegistration();
       // TODO: send `finalData` to self-registration table (API call)
@@ -240,7 +325,10 @@ export default function RegisterPage() {
     if (mode === "self") {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100">
-          <div className="max-w-md w-full bg-white p-6 rounded-xl shadow-lg text-center space-y-4">
+          <div
+            id="successCard"
+            className="max-w-md w-full bg-white p-6 rounded-xl shadow-lg text-center space-y-4"
+          >
             <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
             <h1 className="text-xl font-bold text-gray-900">
               Registration Successful 🎉
@@ -252,6 +340,23 @@ export default function RegisterPage() {
                 {registrationData.uniqueId}
               </span>
             </p>
+            {/* ✅ QR Code */}
+            <div className="flex justify-center my-4">
+              <QRCodeCanvas
+                value={JSON.stringify({
+                  uniqueId: registrationData.uniqueId,
+                  childName: registrationData.childName,
+                  dateOfBirth: registrationData.dateOfBirth,
+                  contactNumber: registrationData.contactNumber,
+                })}
+                size={150}
+                bgColor={"#ffffff"}
+                fgColor={"#000000"}
+                level={"H"}
+                includeMargin={true}
+              />
+            </div>
+
             <p className="text-sm text-gray-600">
               This ID has been downloaded on your device. Please show it to a
               volunteer for final verification.
