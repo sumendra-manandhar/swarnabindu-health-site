@@ -102,7 +102,7 @@ export function RegistrationStep2({
   );
 
   return (
-    <Card className="w-full max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-xl">
+    <Card className="w-full max-w-6xl mx-auto  bg-white shadow-lg rounded-xl">
       {/* Header */}
       <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl p-4">
         <CardTitle className="flex items-center gap-2 text-lg md:text-xl">

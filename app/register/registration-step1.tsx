@@ -108,39 +108,38 @@ export function RegistrationStep1({
     }
   }, [data.dateOfBirth]);
 
-const calculateAge = (birthDate: string) => {
-  const birth = new Date(birthDate);
-  const today = new Date();
+  const calculateAge = (birthDate: string) => {
+    const birth = new Date(birthDate);
+    const today = new Date();
 
-  let years = today.getFullYear() - birth.getFullYear();
-  let months = today.getMonth() - birth.getMonth();
+    let years = today.getFullYear() - birth.getFullYear();
+    let months = today.getMonth() - birth.getMonth();
 
-  if (months < 0) {
-    years--;
-    months += 12;
-  }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
 
-  const totalMonths = years * 12 + months;
-  const eligible = totalMonths >= 6 && totalMonths <= 60; // 6 months to 5 years
+    const totalMonths = years * 12 + months;
+    const eligible = totalMonths >= 6 && totalMonths <= 60; // 6 months to 5 years
 
-  setAgeInfo({ years, months, eligible });
+    setAgeInfo({ years, months, eligible });
 
-  // ✅ Build formatted age string
-  const ageString = `${years} वर्ष ${months} महिना`;
+    // ✅ Build formatted age string
+    const ageString = `${years} वर्ष ${months} महिना`;
 
-  // Auto-calculate dose amount based on age
-  let doseAmount = "";
-  if (totalMonths >= 6 && totalMonths <= 12) doseAmount = "1";
-  else if (totalMonths > 12 && totalMonths <= 24) doseAmount = "2";
-  else if (totalMonths > 24 && totalMonths <= 60) doseAmount = "4";
+    // Auto-calculate dose amount based on age
+    let doseAmount = "";
+    if (totalMonths >= 6 && totalMonths <= 12) doseAmount = "1";
+    else if (totalMonths > 12 && totalMonths <= 24) doseAmount = "2";
+    else if (totalMonths > 24 && totalMonths <= 60) doseAmount = "4";
 
-  // ✅ Send to parent
-  onUpdate({ 
-    doseAmount, 
-    age: ageString   // <-- send age string to payload
-  });
-};
-
+    // ✅ Send to parent
+    onUpdate({
+      doseAmount,
+      age: ageString, // <-- send age string to payload
+    });
+  };
 
   const validateStep = () => {
     const newErrors: Record<string, string> = {};
@@ -229,7 +228,7 @@ const calculateAge = (birthDate: string) => {
   const locationOptions = Object.entries(DANG_PALIKAS);
 
   return (
-    <Card className="w-full max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-xl">
+    <Card className="w-full max-w-6xl mx-auto  bg-white shadow-lg rounded-xl">
       {/* Header */}
       <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-4">
         <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
@@ -395,78 +394,67 @@ const calculateAge = (birthDate: string) => {
               <Label htmlFor="dateOfBirth" className="text-sm">
                 जन्म मिति * (वा उमेर)
               </Label>
-              <NepaliDatePicker
-                value={data.dateOfBirth}
-                onChange={(date) => onUpdate({ dateOfBirth: date })}
-                placeholder="जन्म मिति छान्नुहोस्"
-                className="text-sm"
-              />
 
-              {/* Eligibility Card */}
-              {/* ✅ Eligibility Card */}
-              {/* Eligibility Card */}
-              {ageInfo && (
-                <div
-                  className={`p-3 rounded-lg mt-2 ${
-                    ageInfo.eligible
-                      ? "bg-green-50 border border-green-200"
-                      : "bg-red-50 border border-red-200"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calendar
-                      className={`h-4 w-4 ${
-                        ageInfo.eligible ? "text-green-600" : "text-red-600"
-                      }`}
-                    />
-                    <span className="text-sm font-medium">
-                      जन्म मिति:{" "}
-                      {data.dateOfBirth
-                        ? new Date(data.dateOfBirth).toLocaleDateString("ne-NP")
-                        : "N/A"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1 text-sm font-medium">
-                      उमेर:
-                      <Input
-                        min="0"
-                        value={manualAge.years}
-                        onChange={(e) =>
-                          setManualAge({ ...manualAge, years: e.target.value })
-                        }
-                        className="w-14 h-6 px-1 text-xs"
-                      />
-                      वर्ष
-                      <Input
-                        min="0"
-                        max="11"
-                        value={manualAge.months}
-                        onChange={(e) =>
-                          setManualAge({ ...manualAge, months: e.target.value })
-                        }
-                        className="w-12 h-6 px-1 text-xs"
-                      />
-                      महिना
-                    </span>
-
-                    <Badge
-                      variant={ageInfo.eligible ? "default" : "destructive"}
-                      className="ml-auto"
-                    >
-                      {ageInfo.eligible ? "योग्य" : ""}
-                    </Badge>
-                  </div>
-
-                  {!ageInfo.eligible && (
-                    <p className="text-red-700 text-xs mt-1">
-                      स्वर्णबिन्दु प्राशन ६ महिनादेखि ५ वर्षसम्मका बालबालिकाका
-                      लागि मात्र हो।
-                    </p>
-                  )}
+              <div
+                className={`p-3 rounded-lg mt-2 ${
+                  ageInfo?.eligible
+                    ? "bg-green-50 border border-green-200"
+                    : "bg-red-50 border border-red-200"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Calendar
+                    className={`h-4 w-4 ${
+                      ageInfo?.eligible ? "text-green-600" : "text-red-600"
+                    }`}
+                  />
+                  <span className="text-sm font-medium">
+                    जन्म मिति:{" "}
+                    {data.dateOfBirth
+                      ? new Date(data.dateOfBirth).toLocaleDateString("ne-NP")
+                      : "N/A"}
+                  </span>
                 </div>
-              )}
+
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1 text-sm font-medium">
+                    उमेर:
+                    <Input
+                      min="0"
+                      value={manualAge.years}
+                      onChange={(e) =>
+                        setManualAge({ ...manualAge, years: e.target.value })
+                      }
+                      className="w-14 h-6 px-1 text-xs"
+                    />
+                    वर्ष
+                    <Input
+                      min="0"
+                      max="11"
+                      value={manualAge.months}
+                      onChange={(e) =>
+                        setManualAge({ ...manualAge, months: e.target.value })
+                      }
+                      className="w-12 h-6 px-1 text-xs"
+                    />
+                    महिना
+                  </span>
+
+                  <Badge
+                    variant={ageInfo?.eligible ? "default" : "destructive"}
+                    className="ml-auto"
+                  >
+                    {ageInfo?.eligible ? "योग्य" : ""}
+                  </Badge>
+                </div>
+
+                {!ageInfo?.eligible && (
+                  <p className="text-red-700 text-xs mt-1">
+                    स्वर्णबिन्दु प्राशन ६ महिनादेखि ५ वर्षसम्मका बालबालिकाका
+                    लागि मात्र हो।
+                  </p>
+                )}
+              </div>
 
               {errors.dateOfBirth && (
                 <p className="text-red-500 text-sm flex items-center gap-1">

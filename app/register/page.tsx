@@ -168,7 +168,7 @@ export default function RegisterPage() {
       link.download = "registration_id.txt";
       link.click();
 
-      alert("thisss");
+      // alert("thisss");
 
       setRegistrationComplete(true);
 
@@ -212,7 +212,7 @@ export default function RegisterPage() {
         chest_circumference: registrationData.chestCircumference,
         created_at: new Date().toISOString(),
       };
-      alert("yaha");
+      // alert("yaha");
 
       console.log("🌐 Attempting to save self-registration to Supabase...");
       console.log(registrationRecord);
@@ -360,7 +360,7 @@ export default function RegisterPage() {
         )}
 
         {/* Step Content */}
-        <div className="mx-auto">
+        <div className="mx-auto ">
           {currentStep === 1 && (
             <RegistrationStep1
               data={registrationData}
