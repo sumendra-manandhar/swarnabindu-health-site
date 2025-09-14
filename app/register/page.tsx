@@ -14,75 +14,8 @@ import { RegistrationStep2 } from "./registration-step2";
 import { RegistrationStep3 } from "./registration-step3"; // volunteer only
 import { RegistrationSuccess } from "./registration-success";
 import { supabase } from "@/lib/supabase";
-
-import QRCode from "qrcode";
+import { downloadRegistrationPDF } from "@/lib/pdf";
 import { QRCodeCanvas } from "qrcode.react";
-import jsPDF from "jspdf";
-
-export async function downloadRegistrationPDF(registrationData: {
-  uniqueId: string;
-  childName: string;
-  dateOfBirth: string;
-  contactNumber: string;
-}) {
-  const { uniqueId, childName, dateOfBirth, contactNumber } = registrationData;
-
-  const pdf = new jsPDF("p", "mm", "a4");
-  const pageWidth = pdf.internal.pageSize.getWidth();
-
-  // Draw card background (rounded rectangle)
-  pdf.setFillColor(255, 255, 255);
-  pdf.roundedRect(20, 30, pageWidth - 40, 200, 6, 6, "F");
-
-  // Header icon (check circle)
-  pdf.setDrawColor(34, 197, 94); // green
-  pdf.setLineWidth(2);
-  pdf.circle(pageWidth / 2, 50, 10); // circle
-  pdf.setFontSize(20);
-  pdf.setTextColor(34, 197, 94);
-  pdf.text("✔", pageWidth / 2 - 4, 57);
-
-  // Title
-  pdf.setFontSize(16);
-  pdf.setTextColor(0, 0, 0);
-  pdf.text("Registration Successful 🎉", pageWidth / 2, 80, {
-    align: "center",
-  });
-
-  // Registration ID label
-  pdf.setFontSize(12);
-  pdf.setTextColor(80, 80, 80);
-  pdf.text("Your Registration ID is:", pageWidth / 2, 95, {
-    align: "center",
-  });
-
-  // Registration ID
-  pdf.setFontSize(20);
-  pdf.setTextColor(30, 64, 175); // blue-700
-  pdf.text(uniqueId, pageWidth / 2, 110, { align: "center" });
-
-  // QR Code
-  const qrData = JSON.stringify({
-    uniqueId,
-    childName,
-    dateOfBirth,
-    contactNumber,
-  });
-  const qrUrl = await QRCode.toDataURL(qrData, { width: 150 });
-  pdf.addImage(qrUrl, "PNG", pageWidth / 2 - 30, 120, 60, 60);
-
-  // Footer
-  pdf.setFontSize(10);
-  pdf.setTextColor(100, 100, 100);
-  pdf.text(
-    "This ID has been downloaded on your device. Please show it to a volunteer for final verification.",
-    pageWidth / 2,
-    190,
-    { align: "center", maxWidth: pageWidth - 60 }
-  );
-
-  pdf.save(`registration_${uniqueId}.pdf`);
-}
 
 interface RegistrationData {
   // Step 1 - Child Info
@@ -127,6 +60,7 @@ export default function RegisterPage() {
 
   const pathname = usePathname();
   const mode = pathname.includes("/selfregister") ? "self" : "volunteer";
+  localStorage.setItem("registrationMode", mode); // persist mode
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isOnline, setIsOnline] = useState(true);
@@ -340,6 +274,13 @@ export default function RegisterPage() {
                 {registrationData.uniqueId}
               </span>
             </p>
+            <p className="text-gray-700">
+              Mobile Number:
+              <br />
+              <span className="text-2xl font-bold text-blue-700">
+                {registrationData.contactNumber}
+              </span>
+            </p>
             {/* ✅ QR Code */}
             <div className="flex justify-center my-4">
               <QRCodeCanvas
@@ -361,16 +302,7 @@ export default function RegisterPage() {
               This ID has been downloaded on your device. Please show it to a
               volunteer for final verification.
             </p>
-
-            <Button
-              onClick={() => {
-                setRegistrationComplete(false);
-                setCurrentStep(1);
-                // Reset registrationData except district/palika if needed
-              }}
-            >
-              New Registration
-            </Button>
+            <Link href="/selfregister">New Registration</Link>
           </div>
         </div>
       );
@@ -422,7 +354,7 @@ export default function RegisterPage() {
     <div>
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        {/* <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <Link href="/">
               <Button variant="outline" size="sm">
@@ -446,13 +378,13 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Connection Status */}
+      
           <div className="flex items-center gap-2">
             <Badge variant={isOnline ? "default" : "secondary"}>
               {isOnline ? "Online" : "Offline"}
             </Badge>
           </div>
-        </div>
+        </div> */}
 
         {/* Offline Warning */}
         {!isOnline && (

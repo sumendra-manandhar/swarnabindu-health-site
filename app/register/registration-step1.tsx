@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { User, Calendar, AlertCircle, Zap } from "lucide-react";
 import { DANG_PALIKAS, DISTRICTS_WITH_PALIKA } from "@/lib/constants";
 import { NepaliDatePicker } from "@/components/nepali-date-picker";
+import { useCustomTabNavigation } from "@/hooks/use-custom-tab-navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface RegistrationStep1Props {
@@ -43,6 +44,8 @@ export function RegistrationStep1({
       setChildSurname("");
     }
   }, [data.childName]);
+
+  useCustomTabNavigation();
 
   // UI visual for filled content
   const inputClass = (value: string | undefined, error?: string) =>
@@ -145,7 +148,7 @@ export function RegistrationStep1({
     const newErrors: Record<string, string> = {};
 
     if (!data.childName.trim()) newErrors.childName = "बालकको नाम आवश्यक छ";
-    // if (!data.dateOfBirth) newErrors.dateOfBirth = "जन्म मिति आवश्यक छ";
+    if (!data.contactNumber) newErrors.contactNumber = "आवश्यक छ";
     if (!data.gender) newErrors.gender = "लिङ्ग छान्नुहोस्";
     if (!data.dateOfBirth) newErrors.dateOfBirth = " छान्नुहोस्";
     if (!data.palika) newErrors.palika = " छान्नुहोस्";
@@ -230,7 +233,7 @@ export function RegistrationStep1({
   return (
     <Card className="w-full max-w-6xl mx-auto  bg-white shadow-lg rounded-xl">
       {/* Header */}
-      <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-4">
+      <CardHeader className=" mx-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-sm p-4">
         <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
           <User className="h-5 w-5" />
           बालकको आधारभूत जानकारी | Child & Guardian Information
@@ -244,7 +247,7 @@ export function RegistrationStep1({
           <span className="font-medium text-blue-800">
             द्रुत दर्ता | Quick Registration
           </span>
-          <Badge variant="secondary" className="ml-auto text-xs">
+          <Badge variant="outline" className="bg-white ml-auto text-sm">
             Step 1/3
           </Badge>
         </div>
@@ -252,29 +255,8 @@ export function RegistrationStep1({
         {/* Two-column layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column: Child Info */}
-          <div className="p-4 bg-white border border-blue-100 space-y-4">
-            {/* District / Palika */}
-            {/* <div className="grid grid-cols-2 gap-2">
-              <Input
-                value={data.district}
-                readOnly
-                placeholder="जिल्ला स्वतः भर्नेछ"
-                className="text-sm px-2 py-1 max-w-xs bg-gray-200"
-              />
-              <Input
-                value={data.palika}
-                readOnly
-                placeholder="पालिका स्वतः भर्नेछ"
-                className="text-sm px-2 py-1 max-w-xs  bg-gray-200"
-              />
-            </div> */}
+          <div className="p-6 bg-white border border-blue-100  shadow-sm space-y-4">
             <div className="grid grid-cols-2 gap-2 items-center">
-              {/* <Input
-                value={data.district}
-                readOnly
-                placeholder="जिल्ला स्वतः भर्नेछ"
-                className="text-sm px-2 py-1 max-w-xs bg-gray-200"
-              /> */}
               <Input
                 value={data.district}
                 readOnly
@@ -283,7 +265,7 @@ export function RegistrationStep1({
               />
               {/* Dropdown for quick location selection */}
               <select
-                className="text-sm px-2 py-1 max-w-xs border rounded bg-white"
+                className="important text-sm px-2 py-1 max-w-xs border rounded bg-white"
                 value={data.palika}
                 onChange={(e) => {
                   onUpdate({
@@ -317,7 +299,7 @@ export function RegistrationStep1({
                   type="button"
                   variant={data.gender === "male" ? "default" : "outline"}
                   onClick={() => onUpdate({ gender: "male" })}
-                  className="flex-1 text-sm py-1"
+                  className=" important flex-1 text-sm py-1"
                 >
                   पुरुष | Male
                 </Button>
@@ -325,7 +307,7 @@ export function RegistrationStep1({
                   type="button"
                   variant={data.gender === "female" ? "default" : "outline"}
                   onClick={() => onUpdate({ gender: "female" })}
-                  className="flex-1 text-sm py-1"
+                  className="important flex-1 text-sm py-1"
                 >
                   महिला | Female
                 </Button>
@@ -341,9 +323,9 @@ export function RegistrationStep1({
                 value={data.childName}
                 onChange={(e) => onUpdate({ childName: e.target.value })}
                 placeholder="बालकको नाम लेख्नुहोस्"
-                className="text-sm px-2 py-1"
+                className="  important text-sm px-2 py-1"
               />
-              {data.gender && !data.childName && (
+              {/* {data.gender && !data.childName && (
                 <div className="flex flex-wrap gap-1 mt-1">
                   {commonNames[data.gender as keyof typeof commonNames]
                     ?.slice(0, 4)
@@ -359,7 +341,7 @@ export function RegistrationStep1({
                       </Button>
                     ))}
                 </div>
-              )}
+              )} */}
               {errors.childName && (
                 <p className="text-red-500 text-sm flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" />
@@ -399,7 +381,7 @@ export function RegistrationStep1({
                 className={`p-3 rounded-lg mt-2 ${
                   ageInfo?.eligible
                     ? "bg-green-50 border border-green-200"
-                    : "bg-red-50 border border-red-200"
+                    : "bg-amber-50 border border-amber-100 "
                 }`}
               >
                 <div className="flex items-center gap-2 mb-2">
@@ -425,7 +407,7 @@ export function RegistrationStep1({
                       onChange={(e) =>
                         setManualAge({ ...manualAge, years: e.target.value })
                       }
-                      className="w-14 h-6 px-1 text-xs"
+                      className="bg-white text-center w-12 h-8px-1 text-xs"
                     />
                     वर्ष
                     <Input
@@ -435,7 +417,7 @@ export function RegistrationStep1({
                       onChange={(e) =>
                         setManualAge({ ...manualAge, months: e.target.value })
                       }
-                      className="w-12 h-6 px-1 text-xs"
+                      className="important bg-white text-center w-12 h-8 px-1 text-xs"
                     />
                     महिना
                   </span>
@@ -466,7 +448,7 @@ export function RegistrationStep1({
           </div>
 
           {/* Right Column: Guardian Info */}
-          <div className="p-4   shadow-sm space-y-4">
+          <div className="p-6  bg-white border border-blue-100 space-y-4">
             <h3 className="text-blue-700 font-semibold text-sm">
               अभिभावक विवरण | Guardian Info
             </h3>
@@ -488,7 +470,7 @@ export function RegistrationStep1({
                     ? `बुबाको नाम (e.g. ${childSurname})`
                     : "बुबाको नाम"
                 }
-                className="text-sm px-2 py-1"
+                className="important text-sm px-2 py-1"
               />
               {data.fatherName.trim() && (
                 <>
@@ -502,7 +484,7 @@ export function RegistrationStep1({
                     className="text-sm px-2 py-1 mt-1"
                   />
                   {/* Show suggestions only if input is empty */}
-                  {!data.fatherOccupation && (
+                  {/* {!data.fatherOccupation && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {commonJobs.male.map((job) => (
                         <Button
@@ -516,7 +498,7 @@ export function RegistrationStep1({
                         </Button>
                       ))}
                     </div>
-                  )}
+                  )} */}
                 </>
               )}
             </div>
@@ -529,7 +511,7 @@ export function RegistrationStep1({
                 value={data.motherName}
                 onChange={(e) => onUpdate({ motherName: e.target.value })}
                 placeholder="आमाको नाम"
-                className="text-sm px-2 py-1"
+                className="important text-sm px-2 py-1"
               />
               {data.motherName.trim() && (
                 <>
@@ -540,10 +522,10 @@ export function RegistrationStep1({
                       onUpdate({ motherOccupation: e.target.value })
                     }
                     placeholder="आमाको पेशा"
-                    className="text-sm px-2 py-1 mt-1"
+                    className=" text-sm px-2 py-1 mt-1"
                   />
                   {/* Show suggestions only if input is empty */}
-                  {!data.motherOccupation && (
+                  {/* {!data.motherOccupation && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {commonJobs.female.map((job) => (
                         <Button
@@ -557,7 +539,7 @@ export function RegistrationStep1({
                         </Button>
                       ))}
                     </div>
-                  )}
+                  )} */}
                 </>
               )}
             </div>
@@ -568,7 +550,7 @@ export function RegistrationStep1({
                 सम्पर्क नम्बर *
               </Label>
               <div className="flex items-center gap-1">
-                <span className="inline-flex items-center px-2 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md">
+                <span className="h-8 inline-flex items-center px-2 text-sm text-gray-900 bg-gray-200 border border-r-0 border-gray-300 rounded-l-md">
                   +977
                 </span>
                 <Input
@@ -582,16 +564,26 @@ export function RegistrationStep1({
                     })
                   }
                   placeholder="9800000000"
-                  className="text-sm px-2 py-1 rounded-l-none max-w-xs"
+                  className="important text-sm px-2 py-1 rounded-l-none max-w-xs"
                 />
               </div>
             </div>
+            {errors.contactNumber && (
+              <p className="text-red-500 text-sm flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                {errors.contactNumber}
+              </p>
+            )}
           </div>
         </div>
 
         {/* Next Step Button */}
         <div className="flex justify-end">
-          <Button onClick={handleNext} className="px-6 py-1 text-sm">
+          <Button
+            onClick={handleNext}
+            variant={"outline"}
+            className=" focus:bg-black focus:text-white hover:bg-black hover:text-white important px-6 py-1 text-sm"
+          >
             अर्को चरण | Next Step
           </Button>
         </div>

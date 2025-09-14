@@ -21,6 +21,7 @@ import {
   Phone,
   Calendar,
 } from "lucide-react";
+import { useCustomTabNavigation } from "@/hooks/use-custom-tab-navigation";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface RegistrationStep3Props {
@@ -46,6 +47,8 @@ export function RegistrationStep3({
     "डा. सागर पोखरेल",
     "डा. प्रतिक्षा के.सी ",
   ];
+
+  useCustomTabNavigation();
 
   useEffect(() => {
     if (!data.batchNumber) {
@@ -202,7 +205,7 @@ export function RegistrationStep3({
       {/* RIGHT COLUMN (Form) */}
       <div className="lg:col-span-2">
         <Card className="w-full max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-xl">
-          <CardHeader className="bg-gradient-to-r  from-amber-600 to-orange-600 text-white rounded-xl p-4">
+          <CardHeader className="mx-4 bg-gradient-to-r  from-amber-600 to-orange-600 text-white rounded-sm p-4">
             <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
               <Zap className="h-5 w-5" />
               स्वर्णबिन्दु प्राशन विवरण | Administration Form
@@ -212,9 +215,9 @@ export function RegistrationStep3({
             <div className="flex items-center gap-2 p-2 bg-green-50 rounded-md shadow-sm text-sm">
               <Zap className="h-4 w-4 text-green-600" />
               <span className="font-medium text-green-800">
-                द्रुत भर्ने | Quick Fill
+                द्रुत दर्ता | Quick Registration
               </span>
-              <Badge variant="secondary" className="ml-auto text-xs">
+              <Badge variant="outline" className="bg-white ml-auto text-sm">
                 Step 3/3
               </Badge>
             </div>
@@ -259,9 +262,7 @@ export function RegistrationStep3({
                     }
                     size="sm"
                     onClick={() => onUpdate({ administeredBy: name })}
-                    className={
-                      data.administeredBy === name ? "border-blue-600" : ""
-                    }
+                    className="important"
                   >
                     {name}
                   </Button>
@@ -275,29 +276,31 @@ export function RegistrationStep3({
             </div>
 
             {/* Batch & Dose */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
+              <div className="space-y-1">
                 <Label htmlFor="batchNumber">ब्याच नम्बर</Label>
                 <Input
                   id="batchNumber"
                   value={data.batchNumber}
                   onChange={(e) => onUpdate({ batchNumber: e.target.value })}
                   placeholder="Auto-generated"
+                  disabled
                 />
               </div>
-              <div>
+              <div className="space-y-1">
                 <Label htmlFor="doseAmount">मात्रा (थोपा)</Label>
                 <Input
                   id="doseAmount"
                   value={data.doseAmount}
                   onChange={(e) => onUpdate({ doseAmount: e.target.value })}
                   placeholder={doseRecommendation.amount}
+                  className="important"
                 />
               </div>
             </div>
 
             {/* Notes */}
-            <div>
+            <div className="space-y-1">
               <Label htmlFor="notes">टिप्पणी</Label>
               <Textarea
                 id="notes"
@@ -365,7 +368,12 @@ export function RegistrationStep3({
               <Button variant="outline" onClick={onPrev}>
                 <ArrowLeft className="mr-2 h-4 w-4" /> पछाडि
               </Button>
-              <Button onClick={handleComplete} disabled={saving}>
+              <Button
+                onClick={handleComplete}
+                disabled={saving}
+                variant={"outline"}
+                className=" focus:bg-black focus:text-white hover:bg-black hover:text-white  important px-6 py-1 text-sm"
+              >
                 {saving ? "Saving..." : "दर्ता पूरा गर्नुहोस्"}
               </Button>
             </div>
