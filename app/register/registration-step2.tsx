@@ -314,49 +314,59 @@ export function RegistrationStep2({
                   className=" text-sm px-2 py-1"
                 />
               </div>
-              <div className="flex flex-col">
-                <Label htmlFor="muac" className="text-sm">
-                  MUAC (cm)
-                </Label>
-                <Input
-                  id="muac"
-                  type="number"
-                  value={data.muac || ""}
-                  onChange={(e) => onUpdate({ ...data, muac: e.target.value })}
-                  placeholder="से.मी."
-                  className="text-sm px-2 py-1"
-                />
-              </div>
-              <div className="flex flex-col">
-                <Label htmlFor="headCircumference" className="text-sm">
-                  माथि घेरा (cm)
-                </Label>
-                <Input
-                  id="headCircumference"
-                  type="number"
-                  value={data.headCircumference || ""}
-                  onChange={(e) =>
-                    onUpdate({ ...data, headCircumference: e.target.value })
-                  }
-                  placeholder="से.मी."
-                  className="text-sm px-2 py-1"
-                />
-              </div>
-              <div className="flex flex-col">
-                <Label htmlFor="chestCircumference" className="text-sm">
-                  छाती घेरा (cm)
-                </Label>
-                <Input
-                  id="chestCircumference"
-                  type="number"
-                  value={data.chestCircumference || ""}
-                  onChange={(e) =>
-                    onUpdate({ ...data, chestCircumference: e.target.value })
-                  }
-                  placeholder="से.मी."
-                  className="text-sm px-2 py-1"
-                />
-              </div>
+
+              {mode !== "self" && (
+                <>
+                  <div className="flex flex-col">
+                    <Label htmlFor="muac" className="text-sm">
+                      MUAC (cm)
+                    </Label>
+                    <Input
+                      id="muac"
+                      type="number"
+                      value={data.muac || ""}
+                      onChange={(e) =>
+                        onUpdate({ ...data, muac: e.target.value })
+                      }
+                      placeholder="से.मी."
+                      className="text-sm px-2 py-1"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <Label htmlFor="headCircumference" className="text-sm">
+                      माथि घेरा (cm)
+                    </Label>
+                    <Input
+                      id="headCircumference"
+                      type="number"
+                      value={data.headCircumference || ""}
+                      onChange={(e) =>
+                        onUpdate({ ...data, headCircumference: e.target.value })
+                      }
+                      placeholder="से.मी."
+                      className="text-sm px-2 py-1"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <Label htmlFor="chestCircumference" className="text-sm">
+                      छाती घेरा (cm)
+                    </Label>
+                    <Input
+                      id="chestCircumference"
+                      type="number"
+                      value={data.chestCircumference || ""}
+                      onChange={(e) =>
+                        onUpdate({
+                          ...data,
+                          chestCircumference: e.target.value,
+                        })
+                      }
+                      placeholder="से.मी."
+                      className="text-sm px-2 py-1"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -34,22 +34,21 @@ export function AyurvedicCertificate({
       {/* Header Section */}
       <div className="bg-gradient-to-r from-blue-700 to-blue-800 text-white p-6 relative">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
-              <img
-                src="/images/nepal-emblem.png"
-                alt="Nepal Emblem"
-                className="w-16 h-16 object-contain"
-              />
-            </div>
-            <div className="text-center flex-1">
-              <h1 className="text-2xl font-bold mb-1">
-                प्रादेशिक आयुर्वेद चिकित्सालय
-              </h1>
-              <h2 className="text-lg mb-1">स्वर्णबिन्दु प्राशन कार्यक्रम</h2>
-              <p className="text-sm">बीजौरी, दाङ</p>
-            </div>
+          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
+            <img
+              src="/images/nepal-emblem.png"
+              alt="Nepal Emblem"
+              className="w-16 h-16 object-contain"
+            />
           </div>
+          <div className="text-center flex-1">
+            <h1 className="text-2xl font-bold mb-1">
+              प्रादेशिक आयुर्वेद चिकित्सालय
+            </h1>
+            <h2 className="text-lg mb-1">स्वर्णबिन्दु प्राशन कार्यक्रम</h2>
+            <p className="text-sm">बीजौरी, दाङ</p>
+          </div>
+
           <div className="bg-white p-2 rounded">
             <QRCodeSVG
               value={qrData}
