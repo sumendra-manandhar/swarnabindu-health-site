@@ -265,7 +265,7 @@ export default function RegisterPage() {
           >
             <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
             <h1 className="text-xl font-bold text-gray-900">
-              Registration Successful 🎉
+              आवेदन प्रक्रिया सफल भएको छ । 🎉
             </h1>
             <p className="text-gray-700">
               Your Registration ID is:
@@ -277,7 +277,7 @@ export default function RegisterPage() {
             <p className="text-gray-700">
               Mobile Number:
               <br />
-              <span className="text-2xl font-bold text-blue-700">
+              <span className="text-xl font-bold text-blue-900">
                 {registrationData.contactNumber}
               </span>
             </p>
@@ -299,10 +299,12 @@ export default function RegisterPage() {
             </div>
 
             <p className="text-sm text-gray-600">
-              This ID has been downloaded on your device. Please show it to a
-              volunteer for final verification.
+              यो ID तपाईंको उपकरणमा डाउनलोड भइसकेको छ ।
             </p>
-            <Link href="/selfregister">New Registration</Link>
+            <p className="text-sm text-gray-600">
+            हजुरको बच्चालाई  स्वर्णविन्दु खुवाउन आउँदा यो QR कोडको फोटो वा प्रिन्ट वा Master ID अनिवार्य रूपमा लिएर आउनुहोला  ।
+            </p>
+            <Link href="/selfregister" className=" border border-b-cyan-950 p-2">New Registration</Link>
           </div>
         </div>
       );

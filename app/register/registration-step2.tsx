@@ -152,7 +152,7 @@ export function RegistrationStep2({
           <div className="p-6 bg-white border border-green-300   space-y-4">
             {/* Vaccination Status */}
             <div className="space-y-2">
-              <Label className="text-sm">खोप स्थिति</Label>
+              <Label className="text-sm">विन्दु स्थिति</Label>
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -380,8 +380,7 @@ export function RegistrationStep2({
                 }
               />
               <Label>
-                म पुष्टि गर्छु कि यो बालक/बालिका योग्य छ र कुनै निषेधित अवस्था
-                छैन।
+                म आफ्नो बच्चालाई स्वर्णविन्दु प्राशन खुवाउन अनुमति दिन्छु ।
               </Label>
             </div>
             {errors.eligibilityConfirmed && (
