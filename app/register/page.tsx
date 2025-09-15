@@ -25,8 +25,8 @@ interface RegistrationData {
   guardianName: string;
   fatherName: string;
   motherName: string;
-  fatherOccupation: string;
-  motherOccupation: string;
+  // fatherOccupation: string;
+  // motherOccupation: string;
   contactNumber: string;
   district: string;
   palika: string;
@@ -73,8 +73,8 @@ export default function RegisterPage() {
     guardianName: "",
     fatherName: "",
     motherName: "",
-    fatherOccupation: "",
-    motherOccupation: "",
+    // fatherOccupation: "",
+    // motherOccupation: "",
     contactNumber: "",
     district: "",
     palika: "",
@@ -215,8 +215,8 @@ export default function RegisterPage() {
         guardian_name: registrationData.guardianName,
         father_name: registrationData.fatherName,
         mother_name: registrationData.motherName,
-        father_occupation: registrationData.fatherOccupation,
-        mother_occupation: registrationData.motherOccupation,
+        // father_occupation: registrationData.fatherOccupation,
+        // mother_occupation: registrationData.motherOccupation,
         contact_number: registrationData.contactNumber,
         district: registrationData.district,
         palika: registrationData.palika,
@@ -302,9 +302,15 @@ export default function RegisterPage() {
               यो ID तपाईंको उपकरणमा डाउनलोड भइसकेको छ ।
             </p>
             <p className="text-sm text-gray-600">
-            हजुरको बच्चालाई  स्वर्णविन्दु खुवाउन आउँदा यो QR कोडको फोटो वा प्रिन्ट वा Master ID अनिवार्य रूपमा लिएर आउनुहोला  ।
+              हजुरको बच्चालाई स्वर्णविन्दु खुवाउन आउँदा यो QR कोडको फोटो वा
+              प्रिन्ट वा Master ID अनिवार्य रूपमा लिएर आउनुहोला ।
             </p>
-            <Link href="/selfregister" className=" border border-b-cyan-950 p-2">New Registration</Link>
+            <Link
+              href="/selfregister"
+              className=" border border-b-cyan-950 p-2"
+            >
+              New Registration
+            </Link>
           </div>
         </div>
       );
@@ -324,8 +330,8 @@ export default function RegisterPage() {
             fatherName: "",
             motherName: "",
             guardianName: "",
-            fatherOccupation: "",
-            motherOccupation: "",
+            // fatherOccupation: "",
+            // motherOccupation: "",
             contactNumber: "",
             district: registrationData.district,
             palika: registrationData.palika,

@@ -8,7 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { User, Calendar, AlertCircle, Zap } from "lucide-react";
-import { DANG_PALIKAS, DISTRICTS_WITH_PALIKA } from "@/lib/constants";
+import {
+  DANG_PALIKAS,
+  CHITWAN_PALIKAS,
+  DISTRICTS_WITH_PALIKA,
+} from "@/lib/constants";
 import { NepaliDatePicker } from "@/components/nepali-date-picker";
 import { useCustomTabNavigation } from "@/hooks/use-custom-tab-navigation";
 
@@ -96,14 +100,12 @@ export function RegistrationStep1({
   // ];
 
   // Preselect first common location on mount
-  useEffect(() => {
-    if (!data.district) {
-      const [firstDistrict, firstPalika] = Object.entries(
-        DISTRICTS_WITH_PALIKA
-      )[0];
-      onUpdate({ district: firstDistrict, palika: firstPalika });
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (!data.district) {
+  //     const [firstDistrict, firstPalika] = Object.entries(DISTRICT_PALIKAS)[0];
+  //     onUpdate({ district: firstDistrict, palika: firstPalika });
+  //   }
+  // }, []);
 
   useEffect(() => {
     if (data.dateOfBirth) {
@@ -147,7 +149,7 @@ export function RegistrationStep1({
   const validateStep = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!data.childName.trim()) newErrors.childName = "बच्चाको नाम आवश्यक छ";
+    if (!data.childName.trim()) newErrors.childName = "बालकको नाम आवश्यक छ";
     if (!data.contactNumber) newErrors.contactNumber = "आवश्यक छ";
     if (!data.gender) newErrors.gender = "लिङ्ग छान्नुहोस्";
     if (!data.dateOfBirth) newErrors.dateOfBirth = " छान्नुहोस्";
@@ -227,8 +229,66 @@ export function RegistrationStep1({
     }
   }, [data.dateOfBirth]);
 
-  // Example dropdown items (replace with your actual list)
-  const locationOptions = Object.entries(DANG_PALIKAS);
+  const getCurrentUserDistrict = (): string | undefined => {
+    if (typeof window === "undefined") return undefined;
+    const storedUser = localStorage.getItem("auth_user");
+    if (!storedUser) return undefined;
+
+    try {
+      const user = JSON.parse(storedUser) as { district?: string };
+      return user.district;
+    } catch {
+      return undefined;
+    }
+  };
+
+  const getUserDistrict = (): string | undefined => {
+    if (typeof window === "undefined") return undefined;
+    const storedUser = localStorage.getItem("auth_user");
+    if (!storedUser) return undefined;
+
+    try {
+      const user = JSON.parse(storedUser) as { district?: string };
+      return user.district;
+    } catch {
+      return undefined;
+    }
+  };
+
+  useEffect(() => {
+    if (!data.district) {
+      const userDistrict = getUserDistrict() || "दाङ";
+      if (userDistrict) {
+        // Auto-set district from logged-in user
+        onUpdate({ district: userDistrict });
+
+        // Also prefill the first palika for that district
+        const palikas =
+          userDistrict === "दाङ"
+            ? DANG_PALIKAS
+            : userDistrict === "चितवन"
+            ? CHITWAN_PALIKAS
+            : [];
+
+        onUpdate({ palika: palikas[0] || "" });
+      }
+    }
+  }, []);
+
+  const getPalikasForDistrict = (): string[] => {
+    debugger;
+    const district = getCurrentUserDistrict() || "दाङ";
+
+    switch (district) {
+      case "दाङ":
+        return DANG_PALIKAS;
+      case "चितवन":
+        return CHITWAN_PALIKAS;
+      default:
+        return [];
+    }
+  };
+  const palikaOptions = getPalikasForDistrict();
 
   return (
     <Card className="w-full max-w-6xl mx-auto  bg-white shadow-lg rounded-xl">
@@ -236,7 +296,7 @@ export function RegistrationStep1({
       <CardHeader className=" mx-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-sm p-4">
         <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
           <User className="h-5 w-5" />
-          बच्चाको आधारभूत जानकारी | Child & Guardian Information
+          बालकको आधारभूत जानकारी | Child & Guardian Information
         </CardTitle>
       </CardHeader>
 
@@ -274,8 +334,8 @@ export function RegistrationStep1({
                 }}
               >
                 <option value="">छान्नुहोस् | Select Palika</option>
-                {DANG_PALIKAS.map((palika, idx) => (
-                  <option key={palika} value={`${idx + 1}-${palika}`}>
+                {palikaOptions.map((palika, idx) => (
+                  <option key={palika} value={palika}>
                     {idx + 1}. {palika}
                   </option>
                 ))}
@@ -288,7 +348,7 @@ export function RegistrationStep1({
               </select>
             </div>
             <h3 className="text-blue-700 font-semibold text-sm">
-              बच्चाको  विवरण | Child Info
+              बालक विवरण | Child Info
             </h3>
 
             {/* Gender */}
@@ -316,13 +376,13 @@ export function RegistrationStep1({
             {/* Child Name */}
             <div className="space-y-1">
               <Label htmlFor="childName" className="text-sm">
-                बच्चाको पूरा नाम *
+                बालकको पूरा नाम *
               </Label>
               <Input
                 id="childName"
                 value={data.childName}
                 onChange={(e) => onUpdate({ childName: e.target.value })}
-                placeholder="बच्चाको नाम लेख्नुहोस्"
+                placeholder="बालकको नाम लेख्नुहोस्"
                 className="  important text-sm px-2 py-1"
               />
               {/* {data.gender && !data.childName && (
@@ -385,17 +445,17 @@ export function RegistrationStep1({
                 }`}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <Calendar
+                  {/* <Calendar
                     className={`h-4 w-4 ${
                       ageInfo?.eligible ? "text-green-600" : "text-red-600"
                     }`}
-                  />
-                  <span className="text-sm font-medium">
+                  /> */}
+                  {/* <span className="text-sm font-medium">
                     जन्म मिति:{" "}
                     {data.dateOfBirth
                       ? new Date(data.dateOfBirth).toLocaleDateString("ne-NP")
                       : "N/A"}
-                  </span>
+                  </span> */}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -472,35 +532,6 @@ export function RegistrationStep1({
                 }
                 className="important text-sm px-2 py-1"
               />
-              {/* {data.fatherName.trim() && (
-                <>
-                  <Input
-                    id="fatherOccupation"
-                    value={data.fatherOccupation || ""}
-                    onChange={(e) =>
-                      onUpdate({ fatherOccupation: e.target.value })
-                    }
-                    placeholder="बुबाको पेशा"
-                    className="text-sm px-2 py-1 mt-1"
-                  />
-                
-                  {!data.fatherOccupation && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {commonJobs.male.map((job) => (
-                        <Button
-                          key={job}
-                          variant="outline"
-                          size="sm"
-                          className="h-6 bg-gray-300 text-xs px-1 py-0"
-                          onClick={() => onUpdate({ fatherOccupation: job })}
-                        >
-                          {job}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )} */}
             </div>
 
             {/* Mother */}
@@ -513,35 +544,6 @@ export function RegistrationStep1({
                 placeholder="आमाको नाम"
                 className="important text-sm px-2 py-1"
               />
-              {/* {data.motherName.trim() && (
-                <>
-                  <Input
-                    id="motherOccupation"
-                    value={data.motherOccupation || ""}
-                    onChange={(e) =>
-                      onUpdate({ motherOccupation: e.target.value })
-                    }
-                    placeholder="आमाको पेशा"
-                    className=" text-sm px-2 py-1 mt-1"
-                  />
-                
-                  {!data.motherOccupation && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {commonJobs.female.map((job) => (
-                        <Button
-                          key={job}
-                          variant="outline"
-                          size="sm"
-                          className="h-6 bg-gray-300 text-xs px-1 py-0"
-                          onClick={() => onUpdate({ motherOccupation: job })}
-                        >
-                          {job}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )} */}
             </div>
 
             {/* Contact */}

@@ -12,8 +12,8 @@ interface SelfRegistration {
   guardian_name: string;
   father_name: string;
   mother_name: string;
-  father_occupation: string;
-  mother_occupation: string;
+  // father_occupation: string;
+  // mother_occupation: string;
   contact_number: string;
   district: string;
   palika: string;
@@ -37,8 +37,8 @@ interface RegistrationData {
   guardianName: string;
   fatherName: string;
   motherName: string;
-  fatherOccupation: string;
-  motherOccupation: string;
+  // fatherOccupation: string;
+  // motherOccupation: string;
   contactNumber: string;
   district: string;
   palika: string;
@@ -63,8 +63,8 @@ const mapToRegistrationData = (record: SelfRegistration): RegistrationData => ({
   guardianName: record.guardian_name,
   fatherName: record.father_name,
   motherName: record.mother_name,
-  fatherOccupation: record.father_occupation,
-  motherOccupation: record.mother_occupation,
+  // fatherOccupation: record.father_occupation,
+  // motherOccupation: record.mother_occupation,
   contactNumber: record.contact_number,
   district: record.district,
   palika: record.palika,

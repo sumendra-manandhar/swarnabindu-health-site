@@ -223,6 +223,7 @@ export function RegistrationSuccess({
   const saveRegistration = async () => {
     if (saveInProgress) return;
     saveInProgress = true;
+
     try {
       const registrationRecord = {
         gender: registrationData.gender,
@@ -232,12 +233,12 @@ export function RegistrationSuccess({
         guardian_name: registrationData.guardianName,
         father_name: registrationData.fatherName,
         mother_name: registrationData.motherName,
-        father_occupation: registrationData.fatherOccupation,
-        mother_occupation: registrationData.motherOccupation,
+        // father_occupation: registrationData.fatherOccupation,
+        // mother_occupation: registrationData.motherOccupation,
         contact_number: registrationData.contactNumber,
         district: registrationData.district,
         palika: registrationData.palika,
-        health_conditions: registrationData.healthConditions || [], // must be array
+        health_conditions: registrationData.healthConditions || [],
         allergies: registrationData.allergies,
         previous_medications: registrationData.previousMedications,
         vaccination_status: registrationData.vaccinationStatus,
@@ -246,23 +247,28 @@ export function RegistrationSuccess({
         muac: registrationData.muac,
         head_circumference: registrationData.headCircumference,
         chest_circumference: registrationData.chestCircumference,
-        administered_by: registrationData.administeredBy, // ✅ fixed casing
+        administered_by: registrationData.administeredBy,
         batch_number: registrationData.batchNumber,
-        consent_given: registrationData.consentGiven, // boolean
+        consent_given: registrationData.consentGiven,
         dose_amount: registrationData.doseAmount,
         notes: registrationData.notes,
-        eligibility_confirmed: registrationData.eligibilityConfirmed, // boolean
-        created_at: new Date().toISOString(), // optional — will default to now()
-        // serial_no: generateSerialNumber(),
+        eligibility_confirmed: registrationData.eligibilityConfirmed,
+        created_at: new Date().toISOString(),
       };
 
-      // setSerialNumber(registrationRecord.serial_no);
+      debugger;
 
-      console.log("🌐 Attempting to save registration to Supabase...");
+      // Determine table based on district
+      const targetTable =
+        registrationRecord.district === "चितवन"
+          ? "chitwan_registrations"
+          : "registrations";
+
+      console.log(`🌐 Saving to Supabase table: ${targetTable}`);
       console.log(registrationRecord);
 
       const { data, error } = await supabase
-        .from("registrations")
+        .from(targetTable)
         .insert([registrationRecord]);
 
       if (error) {
@@ -278,6 +284,8 @@ export function RegistrationSuccess({
         error
       );
       await OfflineStorage.saveRegistration(registrationData);
+    } finally {
+      saveInProgress = false;
     }
   };
 

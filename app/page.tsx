@@ -23,6 +23,7 @@ import {
   FileText,
   Heart,
   RefreshCw,
+  Search,
   Shield,
   TrendingUp,
   UserPlus,
@@ -67,10 +68,27 @@ export default function Home() {
     };
   }, []);
 
+  const getUserDistrict = (): string | undefined => {
+    if (typeof window === "undefined") return undefined;
+    const storedUser = localStorage.getItem("auth_user");
+    if (!storedUser) return undefined;
+
+    try {
+      const user = JSON.parse(storedUser) as { district?: string };
+      return user.district;
+    } catch {
+      return undefined;
+    }
+  };
+
   const loadStatistics = async () => {
     setLoading(true);
+
     try {
-      // Offline data (unchanged)
+      const userDistrict = getUserDistrict() || "दाङ"; // fallback
+      const registrationTable =
+        userDistrict === "चितवन" ? "chitwan_registrations" : "registrations";
+
       const offlineRegistrations = OfflineStorage.getOfflineRegistrations();
       const offlineScreenings = OfflineStorage.getOfflineScreenings();
 
@@ -92,7 +110,6 @@ export default function Home() {
         femalePatients: 0,
         totalScreenings: 0,
         todayRegistrations: 0,
-        // 👇 added
         totalSelfPatients: 0,
         maleSelfPatients: 0,
         femaleSelfPatients: 0,
@@ -101,9 +118,9 @@ export default function Home() {
 
       if (isOnline) {
         try {
-          // Registrations (existing)
+          // Registrations based on district
           const { data: registrations } = await supabase
-            .from("registrations")
+            .from(registrationTable)
             .select("id, gender");
 
           if (registrations) {
@@ -117,27 +134,23 @@ export default function Home() {
           }
 
           const { data: todayRegs } = await supabase
-            .from("registrations")
+            .from(registrationTable)
             .select("id")
             .gte("created_at", startOfDay)
             .lte("created_at", endOfDay);
 
           onlineStats.todayRegistrations = todayRegs ? todayRegs.length : 0;
 
-          // Screenings
+          // Screenings (same for all districts)
           const { data: screenings } = await supabase
             .from("screenings")
             .select("id");
-          if (screenings) {
-            onlineStats.totalScreenings = screenings.length;
-          }
+          if (screenings) onlineStats.totalScreenings = screenings.length;
 
-          // 👇 NEW: Self Registrations
+          // Self registrations (same table)
           const { data: selfRegs } = await supabase
             .from("self_registrations")
             .select("id, gender");
-
-          // alert("selfRegs: " + JSON.stringify(selfRegs));
 
           if (selfRegs) {
             onlineStats.totalSelfPatients = selfRegs.length;
@@ -178,7 +191,6 @@ export default function Home() {
           onlineStats.todayRegistrations + todayRegsOffline.length,
         totalScreenings: onlineStats.totalScreenings + offlineScreenings.length,
         pendingSync: offlineRegistrations.filter((reg) => !reg.synced).length,
-        // 👇 keep self-registration values separate
         totalSelfPatients: onlineStats.totalSelfPatients,
         maleSelfPatients: onlineStats.maleSelfPatients,
         femaleSelfPatients: onlineStats.femaleSelfPatients,
@@ -410,6 +422,26 @@ export default function Home() {
           <Card className="border-2 border-orange-200 shadow-lg hover:shadow-xl transition-all hover:scale-105">
             <CardHeader className="text-center">
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="h-8 w-8 text-orange-600" />
+              </div>
+              <CardTitle className="text-orange-800">Self Registered</CardTitle>
+              <CardDescription>
+                Search and view self-registered users
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Link href="/selfregistered">
+                <Button className="w-full bg-orange-600 hover:bg-orange-700">
+                  <FileText className="h-4 w-4 mr-2" />
+                  नयाँ दर्ता हेर्नुहोस् | Self Registered
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-orange-200 shadow-lg hover:shadow-xl transition-all hover:scale-105">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <BarChart3 className="h-8 w-8 text-orange-600" />
               </div>
               <CardTitle className="text-orange-800">
@@ -421,25 +453,6 @@ export default function Home() {
             </CardHeader>
             <CardContent className="text-center">
               <Link href="/reports">
-                <Button className="w-full bg-orange-600 hover:bg-orange-700">
-                  <FileText className="h-4 w-4 mr-2" />
-                  रिपोर्ट हेर्नुहोस् | View Reports
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-          <Card className="border-2 border-orange-200 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <BarChart3 className="h-8 w-8 text-orange-600" />
-              </div>
-              <CardTitle className="text-orange-800">Pre Registed</CardTitle>
-              <CardDescription>
-                Generate and view program reports
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Link href="/selfregistered">
                 <Button className="w-full bg-orange-600 hover:bg-orange-700">
                   <FileText className="h-4 w-4 mr-2" />
                   रिपोर्ट हेर्नुहोस् | View Reports

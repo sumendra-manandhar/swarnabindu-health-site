@@ -98,20 +98,128 @@ export default function ReportsPage() {
     filterData();
   }, [registrations, searchTerm, genderFilter, reactionFilter, districtFilter]);
 
+  // const loadData = async () => {
+  //   try {
+  //     setLoading(true);
+
+  //     const localRegistrations = OfflineStorage.getAllLocalRegistrations();
+  //     const localScreenings = OfflineStorage.getOfflineScreenings().map(
+  //       (s) => s.data
+  //     );
+
+  //     console.log(
+  //       "[v0] Loaded local registrations:",
+  //       localRegistrations.length
+  //     );
+  //     console.log("[v0] Sample registration:", localRegistrations[0]);
+
+  //     const isOnline =
+  //       typeof navigator !== "undefined" ? navigator.onLine : false;
+
+  //     if (isOnline) {
+  //       try {
+  //         // Fetch from Supabase
+  //         const { data: serverRegistrations, error: regError } = await supabase
+  //           .from("registrations")
+  //           .select("*")
+  //           .order("created_at", { ascending: false });
+
+  //         if (regError) throw regError;
+
+  //         console.log(
+  //           "[v0] Server registrations:",
+  //           serverRegistrations?.length || 0
+  //         );
+
+  //         const mappedServerData = (serverRegistrations || []).map(
+  //           (record) => ({
+  //             id: record.id,
+  //             childName:
+  //               record.childName || record.child_name || record.name || "",
+  //             dateOfBirth: record.dateOfBirth || record.date_of_birth || "",
+  //             age: record.age || "",
+  //             gender: record.gender || "",
+  //             guardianName:
+  //               record.guardianName ||
+  //               record.guardian_name ||
+  //               record.father_name ||
+  //               record.mother_name ||
+  //               "",
+  //             contactNumber:
+  //               record.contactNumber || record.contact_number || "",
+  //             dose_amount: record.dose_amount || record.doseAmount || "2",
+  //             dose_time:
+  //               record.dose_time || new Date().toLocaleTimeString("ne-NP"),
+  //             administered_by: record.administered_by || "स्वास्थ्यकर्मी",
+  //             child_reaction: record.child_reaction || "normal",
+  //             weight: record.weight || 0,
+  //             vaccination_status: record.vaccination_status || "completed",
+  //             date:
+  //               record.date ||
+  //               record.created_at ||
+  //               new Date().toLocaleDateString("ne-NP"),
+  //             serial_no:
+  //               record.serial_no || record.serialNo || `SB${record.id}`,
+  //             district: record.district || "दाङ",
+  //             palika: record.palika || "",
+  //             ward: record.ward || "",
+  //           })
+  //         );
+
+  //         setRegistrations([...localRegistrations, ...mappedServerData]);
+  //         setScreenings(localScreenings);
+  //       } catch (error) {
+  //         console.warn(
+  //           "[v0] Supabase fetch failed. Falling back to local.",
+  //           error
+  //         );
+  //         setRegistrations(localRegistrations);
+  //         setScreenings(localScreenings);
+  //       }
+  //     } else {
+  //       // Offline fallback
+  //       console.log("[v0] Offline mode - using local data only");
+  //       setRegistrations(localRegistrations);
+  //       setScreenings(localScreenings);
+  //     }
+  //   } catch (error) {
+  //     console.error("[v0] Error loading data:", error);
+  //     setRegistrations([]);
+  //     setScreenings([]);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const getUserDistrict = (): string | undefined => {
+    if (typeof window === "undefined") return undefined;
+    const storedUser = localStorage.getItem("auth_user");
+    if (!storedUser) return undefined;
+
+    try {
+      const user = JSON.parse(storedUser) as { district?: string };
+      return user.district;
+    } catch {
+      return undefined;
+    }
+  };
+
   const loadData = async () => {
     try {
       setLoading(true);
 
+      // Get the user's district from localStorage
+      const userDistrict = getUserDistrict() || "दाङ"; // fallback to दाङ
+      const registrationTable =
+        userDistrict === "चितवन" ? "chitwan_registrations" : "registrations";
+
+      console.log(`[v0] Loading data from table: ${registrationTable}`);
+
+      // Load local offline data
       const localRegistrations = OfflineStorage.getAllLocalRegistrations();
       const localScreenings = OfflineStorage.getOfflineScreenings().map(
         (s) => s.data
       );
-
-      console.log(
-        "[v0] Loaded local registrations:",
-        localRegistrations.length
-      );
-      console.log("[v0] Sample registration:", localRegistrations[0]);
 
       const isOnline =
         typeof navigator !== "undefined" ? navigator.onLine : false;
@@ -120,16 +228,11 @@ export default function ReportsPage() {
         try {
           // Fetch from Supabase
           const { data: serverRegistrations, error: regError } = await supabase
-            .from("registrations")
+            .from(registrationTable)
             .select("*")
             .order("created_at", { ascending: false });
 
           if (regError) throw regError;
-
-          console.log(
-            "[v0] Server registrations:",
-            serverRegistrations?.length || 0
-          );
 
           const mappedServerData = (serverRegistrations || []).map(
             (record) => ({
@@ -160,7 +263,7 @@ export default function ReportsPage() {
                 new Date().toLocaleDateString("ne-NP"),
               serial_no:
                 record.serial_no || record.serialNo || `SB${record.id}`,
-              district: record.district || "दाङ",
+              district: record.district || userDistrict,
               palika: record.palika || "",
               ward: record.ward || "",
             })
@@ -170,14 +273,13 @@ export default function ReportsPage() {
           setScreenings(localScreenings);
         } catch (error) {
           console.warn(
-            "[v0] Supabase fetch failed. Falling back to local.",
+            `[v0] Supabase fetch failed for table ${registrationTable}. Falling back to local.`,
             error
           );
           setRegistrations(localRegistrations);
           setScreenings(localScreenings);
         }
       } else {
-        // Offline fallback
         console.log("[v0] Offline mode - using local data only");
         setRegistrations(localRegistrations);
         setScreenings(localScreenings);

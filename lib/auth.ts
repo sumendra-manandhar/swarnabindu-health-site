@@ -19,9 +19,19 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
     user: {
       id: "1",
       name: "प्रशासक",
-      username: "admin",
+      username: "Dang Survey",
       role: "admin",
       district: "दाङ",
+    },
+  },
+  chitwan: {
+    password: "admin123",
+    user: {
+      id: "1",
+      name: "प्रशासक",
+      username: "Chitwan Survey",
+      role: "admin",
+      district: "चितवन",
     },
   },
   volunteer1: {

@@ -246,7 +246,7 @@ export function RegistrationStep2({
             {/* Allergies */}
             <div className="space-y-1">
               <Label htmlFor="allergies" className="text-sm">
-               If Allergy History (पुरानो कुनै एलर्जी भए)
+                If Allergy History (पुरानो कुनै एलर्जी भए)
               </Label>
               <Textarea
                 id="allergies"
@@ -263,7 +263,7 @@ export function RegistrationStep2({
             {/* Medical History */}
             <div className="space-y-1">
               <Label htmlFor="previousMedications" className="text-sm">
-              If Medical History (बच्चामा  कुनै रोग  भएको  वा औषधि खुवाइरहेको भए)
+                If Medical History (बच्चामा कुनै रोग भएको वा औषधि खुवाइरहेको भए)
               </Label>
               <Textarea
                 id="previousMedications"
