@@ -147,7 +147,7 @@ export function RegistrationStep1({
   const validateStep = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!data.childName.trim()) newErrors.childName = "बालकको नाम आवश्यक छ";
+    if (!data.childName.trim()) newErrors.childName = "बच्चाको नाम आवश्यक छ";
     if (!data.contactNumber) newErrors.contactNumber = "आवश्यक छ";
     if (!data.gender) newErrors.gender = "लिङ्ग छान्नुहोस्";
     if (!data.dateOfBirth) newErrors.dateOfBirth = " छान्नुहोस्";
@@ -236,7 +236,7 @@ export function RegistrationStep1({
       <CardHeader className=" mx-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-sm p-4">
         <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
           <User className="h-5 w-5" />
-          बालकको आधारभूत जानकारी | Child & Guardian Information
+          बच्चाको आधारभूत जानकारी | Child & Guardian Information
         </CardTitle>
       </CardHeader>
 
@@ -288,7 +288,7 @@ export function RegistrationStep1({
               </select>
             </div>
             <h3 className="text-blue-700 font-semibold text-sm">
-              बालक विवरण | Child Info
+              बच्चाको  विवरण | Child Info
             </h3>
 
             {/* Gender */}
@@ -316,13 +316,13 @@ export function RegistrationStep1({
             {/* Child Name */}
             <div className="space-y-1">
               <Label htmlFor="childName" className="text-sm">
-                बालकको पूरा नाम *
+                बच्चाको पूरा नाम *
               </Label>
               <Input
                 id="childName"
                 value={data.childName}
                 onChange={(e) => onUpdate({ childName: e.target.value })}
-                placeholder="बालकको नाम लेख्नुहोस्"
+                placeholder="बच्चाको नाम लेख्नुहोस्"
                 className="  important text-sm px-2 py-1"
               />
               {/* {data.gender && !data.childName && (
