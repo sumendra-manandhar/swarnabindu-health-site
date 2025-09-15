@@ -434,7 +434,7 @@ export function RegistrationStep1({
             {/* Date of Birth */}
             <div className="space-y-1">
               <Label htmlFor="dateOfBirth" className="text-sm">
-                जन्म मिति * (वा उमेर)
+                बालकको उमेर *
               </Label>
 
               <div
@@ -459,8 +459,7 @@ export function RegistrationStep1({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="flex items-center gap-1 text-sm font-medium">
-                    उमेर:
+                  <span className="flex items-center gap-2 text-sm font-medium">
                     <Input
                       min="0"
                       value={manualAge.years}
