@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   username: string;
-  role: "admin" | "volunteer";
+  role: "admin" | "volunteer" | "inputter";
   district?: string;
 }
 
@@ -30,7 +30,7 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       id: "1",
       name: "प्रशासक",
       username: "Chitwan Survey",
-      role: "admin",
+      role: "inputter",
       district: "चितवन",
     },
   },

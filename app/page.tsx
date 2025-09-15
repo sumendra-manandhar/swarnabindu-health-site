@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useAuth } from "@/contexts/auth-context";
 import { OfflineStorage } from "@/lib/offline-storage";
 import { supabase } from "@/lib/supabase";
 import {
@@ -34,6 +35,57 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+const dashboardItems = [
+  {
+    href: "/register",
+    title: "नयाँ दर्ता | New Registration",
+    description: "Register a new child for the Swarnabindu program",
+    icon: UserPlus,
+    color: "green",
+    roles: ["admin", "volunteer", "inputter"],
+  },
+  {
+    href: "/screening",
+    title: "स्वर्णबिन्दु प्राशन | Swarnabindu Prashan",
+    description: "Administer Swarnabindu drops to registered children",
+    icon: Droplets,
+    color: "blue",
+    roles: ["admin", "volunteer"],
+  },
+  {
+    href: "/selfregistered",
+    title: "Self Registered",
+    description: "Search and view self-registered users",
+    icon: Search,
+    color: "orange",
+    roles: ["admin"],
+  },
+  {
+    href: "/reports",
+    title: "रिपोर्ट | Reports",
+    description: "Generate and view program reports",
+    icon: BarChart3,
+    color: "orange",
+    roles: ["admin", "inputter"],
+  },
+  {
+    href: "/sync",
+    title: "डाटा सिंक | Data Sync",
+    description: "Synchronize offline data with server",
+    icon: Database,
+    color: "teal",
+    roles: ["admin", "volunteer", "inputter"],
+  },
+  {
+    href: "#",
+    title: "आपातकालीन | Emergency",
+    description: "Emergency contacts and procedures",
+    icon: Shield,
+    color: "red",
+    roles: ["admin", "volunteer", "inputter"],
+  },
+];
+
 export default function Home() {
   const [stats, setStats] = useState({
     totalPatients: 0,
@@ -51,6 +103,12 @@ export default function Home() {
 
   const [isOnline, setIsOnline] = useState(true);
   const [loading, setLoading] = useState(true);
+
+  const { user } = useAuth();
+
+  const filteredItems = dashboardItems.filter((item) =>
+    item.roles.includes(user?.role || "volunteer")
+  );
 
   useEffect(() => {
     setIsOnline(navigator.onLine);
@@ -353,160 +411,42 @@ export default function Home() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="border-2 border-green-200 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <UserPlus className="h-8 w-8 text-green-600" />
-              </div>
-              <CardTitle className="text-green-800">
-                नयाँ दर्ता | New Registration
-              </CardTitle>
-              <CardDescription>
-                Register a new child for the Swarnabindu program
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Link href="/register">
-                <Button className="w-full bg-green-600 hover:bg-green-700">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  नयाँ दर्ता गर्नुहोस् | Register New Child
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 border-blue-200 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Droplets className="h-8 w-8 text-blue-600" />
-              </div>
-              <CardTitle className="text-blue-800">
-                स्वर्णबिन्दु प्राशन | Swarnabindu Prashan
-              </CardTitle>
-              <CardDescription>
-                Administer Swarnabindu drops to registered children
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Link href="/screening">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                  <Droplets className="h-4 w-4 mr-2" />
-                  स्वर्णबिन्दु दिनुहोस् | Give Swarnabindu
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          {/* <Card className="border-2 border-purple-200 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-purple-600" />
-              </div>
-              <CardTitle className="text-purple-800">
-                बिरामी व्यवस्थापन | Patient Management
-              </CardTitle>
-              <CardDescription>
-                View and manage registered patients
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Link href="/patients">
-                <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                  <Users className="h-4 w-4 mr-2" />
-                  बिरामी हेर्नुहोस् | View Patients
-                </Button>
-              </Link>
-            </CardContent>
-          </Card> */}
-
-          <Card className="border-2 border-orange-200 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="h-8 w-8 text-orange-600" />
-              </div>
-              <CardTitle className="text-orange-800">Self Registered</CardTitle>
-              <CardDescription>
-                Search and view self-registered users
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Link href="/selfregistered">
-                <Button className="w-full bg-orange-600 hover:bg-orange-700">
-                  <FileText className="h-4 w-4 mr-2" />
-                  नयाँ दर्ता हेर्नुहोस् | Self Registered
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 border-orange-200 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <BarChart3 className="h-8 w-8 text-orange-600" />
-              </div>
-              <CardTitle className="text-orange-800">
-                रिपोर्ट | Reports
-              </CardTitle>
-              <CardDescription>
-                Generate and view program reports
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Link href="/reports">
-                <Button className="w-full bg-orange-600 hover:bg-orange-700">
-                  <FileText className="h-4 w-4 mr-2" />
-                  रिपोर्ट हेर्नुहोस् | View Reports
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 border-teal-200 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Database className="h-8 w-8 text-teal-600" />
-              </div>
-              <CardTitle className="text-teal-800">
-                डाटा सिंक | Data Sync
-              </CardTitle>
-              <CardDescription>
-                Synchronize offline data with server
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Link href="/sync">
-                <Button className="w-full bg-teal-600 hover:bg-teal-700">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  डाटा सिंक गर्नुहोस् | Sync Data
-                </Button>
-              </Link>
-              {stats.pendingSync > 0 && (
-                <Badge variant="destructive" className="mt-2">
-                  {stats.pendingSync} pending
-                </Badge>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-2 border-red-200 shadow-lg hover:shadow-xl transition-all hover:scale-105">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-red-600" />
-              </div>
-              <CardTitle className="text-red-800">
-                आपातकालीन | Emergency
-              </CardTitle>
-              <CardDescription>
-                Emergency contacts and procedures
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Button className="w-full bg-red-600 hover:bg-red-700">
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                आपातकालीन सम्पर्क | Emergency Contact
-              </Button>
-            </CardContent>
-          </Card>
+          {filteredItems.map((item, i) => {
+            const Icon = item.icon;
+            return (
+              <Card
+                key={i}
+                className={`border-2 border-${item.color}-200 shadow-lg hover:shadow-xl transition-all hover:scale-105`}
+              >
+                <CardHeader className="text-center">
+                  <div
+                    className={`w-16 h-16 bg-${item.color}-100 rounded-full flex items-center justify-center mx-auto mb-4`}
+                  >
+                    <Icon className={`h-8 w-8 text-${item.color}-600`} />
+                  </div>
+                  <CardTitle className={`text-${item.color}-800`}>
+                    {item.title}
+                  </CardTitle>
+                  <CardDescription>{item.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <Link href={item.href}>
+                    <Button
+                      className={`w-full bg-${item.color}-600 hover:bg-${item.color}-700`}
+                    >
+                      <Icon className="h-4 w-4 mr-2" />
+                      {item.title}
+                    </Button>
+                  </Link>
+                  {item.href === "/sync" && stats.pendingSync > 0 && (
+                    <Badge variant="destructive" className="mt-2">
+                      {stats.pendingSync} pending
+                    </Badge>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
         {/* Program Information */}
         <Card className="border-2 border-gray-200 shadow-lg">

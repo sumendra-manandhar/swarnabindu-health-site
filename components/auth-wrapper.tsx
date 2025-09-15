@@ -27,7 +27,8 @@ export default function AuthWrapper({
 
   // For protected routes, wrap with auth guard and navbar
   return (
-    <AuthGuard requireAdmin={pathname === "/reports"}>
+    // <AuthGuard requireAdmin={pathname === "/reports"}>
+    <AuthGuard>
       <div className="min-h-screen bg-gray-50">
         <div className={mode === "self" ? "hidden" : ""}>
           <Navbar />

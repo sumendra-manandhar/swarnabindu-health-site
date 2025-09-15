@@ -30,12 +30,17 @@ import Image from "next/image";
 import Logo from "../logo.jpeg";
 
 const navigationItems = [
-  { href: "/", label: "गृहपृष्ठ", icon: Home, roles: ["admin", "volunteer"] },
+  {
+    href: "/",
+    label: "गृहपृष्ठ",
+    icon: Home,
+    roles: ["admin", "volunteer", "inputter"],
+  },
   {
     href: "/register",
     label: "नयाँ दर्ता",
     icon: UserPlus,
-    roles: ["admin", "volunteer"],
+    roles: ["admin", "volunteer", "inputter"],
   },
   {
     href: "/screening",
@@ -44,12 +49,17 @@ const navigationItems = [
     roles: ["admin", "volunteer"],
   },
 
-  { href: "/reports", label: "रिपोर्ट", icon: FileText, roles: ["admin"] },
+  {
+    href: "/reports",
+    label: "रिपोर्ट",
+    icon: FileText,
+    roles: ["admin", "inputter"],
+  },
   {
     href: "/sync",
     label: "डाटा सिंक",
     icon: Database,
-    roles: ["admin", "volunteer"],
+    roles: ["admin", "volunteer", "inputter"],
   },
 ];
 
