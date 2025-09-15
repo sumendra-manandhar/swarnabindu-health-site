@@ -472,7 +472,7 @@ export function RegistrationStep1({
                 }
                 className="important text-sm px-2 py-1"
               />
-              {data.fatherName.trim() && (
+              {/* {data.fatherName.trim() && (
                 <>
                   <Input
                     id="fatherOccupation"
@@ -483,8 +483,8 @@ export function RegistrationStep1({
                     placeholder="बुबाको पेशा"
                     className="text-sm px-2 py-1 mt-1"
                   />
-                  {/* Show suggestions only if input is empty */}
-                  {/* {!data.fatherOccupation && (
+                
+                  {!data.fatherOccupation && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {commonJobs.male.map((job) => (
                         <Button
@@ -498,9 +498,9 @@ export function RegistrationStep1({
                         </Button>
                       ))}
                     </div>
-                  )} */}
+                  )}
                 </>
-              )}
+              )} */}
             </div>
 
             {/* Mother */}
@@ -513,7 +513,7 @@ export function RegistrationStep1({
                 placeholder="आमाको नाम"
                 className="important text-sm px-2 py-1"
               />
-              {data.motherName.trim() && (
+              {/* {data.motherName.trim() && (
                 <>
                   <Input
                     id="motherOccupation"
@@ -524,8 +524,8 @@ export function RegistrationStep1({
                     placeholder="आमाको पेशा"
                     className=" text-sm px-2 py-1 mt-1"
                   />
-                  {/* Show suggestions only if input is empty */}
-                  {/* {!data.motherOccupation && (
+                
+                  {!data.motherOccupation && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {commonJobs.female.map((job) => (
                         <Button
@@ -539,9 +539,9 @@ export function RegistrationStep1({
                         </Button>
                       ))}
                     </div>
-                  )} */}
+                  )}
                 </>
-              )}
+              )} */}
             </div>
 
             {/* Contact */}
