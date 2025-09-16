@@ -58,7 +58,7 @@ const dashboardItems = [
     description: "Search and view self-registered users",
     icon: Search,
     color: "green",
-    roles: ["admin"],
+    roles: ["admin","volunteer"],
   },
   {
     href: "/reports",
