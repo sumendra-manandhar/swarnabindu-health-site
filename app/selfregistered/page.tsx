@@ -84,26 +84,33 @@ export default function Registration3Page() {
     window.location.href = "/register?step=3";
   };
 
+  
+type QrScannerResult = {
+  rawValue: string;
+  format: string;
+};
+
   // ✅ QR Scan Handler
-  const handleScan = (results: any[]) => {
-    if (results && results[0]?.rawValue) {
-      try {
-        const parsed = JSON.parse(results[0].rawValue);
-        if (parsed.uniqueId) {
-          setSearchValue(parsed.uniqueId);
-          handleSearch(parsed.uniqueId);
-          setScanOpen(false);
-        } else if (parsed.contactNumber) {
-          setSearchValue(parsed.contactNumber);
-          handleSearch(parsed.contactNumber);
-          setScanOpen(false);
-        }
-      } catch (err) {
-        console.error("Invalid QR code:", err);
-        setErrorMsg("⚠️ Invalid QR code format");
+ const handleScan = (results: QrScannerResult[] | null) => {
+  if (results && results[0]?.rawValue) {
+    try {
+      const parsed = JSON.parse(results[0].rawValue);
+      if (parsed.uniqueId) {
+        setSearchValue(parsed.uniqueId);
+        handleSearch(parsed.uniqueId);
+        setScanOpen(false);
+      } else if (parsed.contactNumber) {
+        setSearchValue(parsed.contactNumber);
+        handleSearch(parsed.contactNumber);
+        setScanOpen(false);
       }
+    } catch (err) {
+      console.error("Invalid QR code:", err);
+      setErrorMsg("⚠️ Invalid QR code format");
     }
-  };
+  }
+};
+
 
   return (
     <div className="container mx-auto p-6 max-w-2xl">
