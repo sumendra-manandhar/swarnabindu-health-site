@@ -57,7 +57,7 @@ const dashboardItems = [
     title: "Self Registered",
     description: "Search and view self-registered users",
     icon: Search,
-    color: "orange",
+    color: "green",
     roles: ["admin"],
   },
   {
@@ -65,7 +65,7 @@ const dashboardItems = [
     title: "रिपोर्ट | Reports",
     description: "Generate and view program reports",
     icon: BarChart3,
-    color: "orange",
+    color: "blue",
     roles: ["admin", "inputter"],
   },
   {
@@ -73,7 +73,7 @@ const dashboardItems = [
     title: "डाटा सिंक | Data Sync",
     description: "Synchronize offline data with server",
     icon: Database,
-    color: "teal",
+    color: "blue",
     roles: ["admin", "volunteer", "inputter"],
   },
   {
@@ -420,7 +420,7 @@ export default function Home() {
               >
                 <CardHeader className="text-center">
                   <div
-                    className={`w-16 h-16 bg-${item.color}-100 rounded-full flex items-center justify-center mx-auto mb-4`}
+                    className={`w-16 h-16 bg-${item.color}-200 rounded-full flex items-center justify-center mx-auto mb-4`}
                   >
                     <Icon className={`h-8 w-8 text-${item.color}-600`} />
                   </div>
