@@ -44,6 +44,53 @@ interface SelfRegistration {
   created_at: string;
 }
 
+interface RegistrationData {
+  gender: string;
+  childName: string;
+  dateOfBirth: string;
+  age: string;
+  guardianName: string;
+  fatherName: string;
+  motherName: string;
+  contactNumber: string;
+  district: string;
+  palika: string;
+  healthConditions: string[];
+  allergies: string;
+  previousMedications: string;
+  vaccinationStatus: string;
+  weight: string;
+  height: string;
+  muac: string;
+  headCircumference: string;
+  chestCircumference: string;
+  uniqueId?: string;
+}
+
+// ✅ Mapper function
+const mapToRegistrationData = (record: SelfRegistration): RegistrationData => ({
+  gender: record.gender ?? "",
+  childName: record.child_name ?? "",
+  dateOfBirth: record.date_of_birth ?? "",
+  age: record.age ?? "",
+  guardianName: record.guardian_name ?? "",
+  fatherName: record.father_name ?? "",
+  motherName: record.mother_name ?? "",
+  contactNumber: record.contact_number ?? "",
+  district: record.district ?? "",
+  palika: record.palika ?? "",
+  healthConditions: record.health_conditions || [],
+  allergies: record.allergies ?? "",
+  previousMedications: record.previous_medications ?? "",
+  vaccinationStatus: record.vaccination_status ?? "",
+  weight: record.weight ?? "",
+  height: record.height ?? "",
+  muac: record.muac ?? "",
+  headCircumference: record.head_circumference ?? "",
+  chestCircumference: record.chest_circumference ?? "",
+  uniqueId: record.unique_id ?? "",
+});
+
 export default function Registration3Page() {
   const [searchValue, setSearchValue] = useState("");
   const [data, setData] = useState<SelfRegistration | null>(null);
@@ -80,37 +127,36 @@ export default function Registration3Page() {
   };
 
   const handleProceed = (record: SelfRegistration) => {
-    localStorage.setItem("prefillData", JSON.stringify(record));
+    const mapped = mapToRegistrationData(record);
+    localStorage.setItem("prefillData", JSON.stringify(mapped));
     window.location.href = "/register?step=3";
   };
 
-  
-type QrScannerResult = {
-  rawValue: string;
-  format: string;
-};
+  type QrScannerResult = {
+    rawValue: string;
+    format: string;
+  };
 
   // ✅ QR Scan Handler
- const handleScan = (results: QrScannerResult[] | null) => {
-  if (results && results[0]?.rawValue) {
-    try {
-      const parsed = JSON.parse(results[0].rawValue);
-      if (parsed.uniqueId) {
-        setSearchValue(parsed.uniqueId);
-        handleSearch(parsed.uniqueId);
-        setScanOpen(false);
-      } else if (parsed.contactNumber) {
-        setSearchValue(parsed.contactNumber);
-        handleSearch(parsed.contactNumber);
-        setScanOpen(false);
+  const handleScan = (results: QrScannerResult[] | null) => {
+    if (results && results[0]?.rawValue) {
+      try {
+        const parsed = JSON.parse(results[0].rawValue);
+        if (parsed.uniqueId) {
+          setSearchValue(parsed.uniqueId);
+          handleSearch(parsed.uniqueId);
+          setScanOpen(false);
+        } else if (parsed.contactNumber) {
+          setSearchValue(parsed.contactNumber);
+          handleSearch(parsed.contactNumber);
+          setScanOpen(false);
+        }
+      } catch (err) {
+        console.error("Invalid QR code:", err);
+        setErrorMsg("⚠️ Invalid QR code format");
       }
-    } catch (err) {
-      console.error("Invalid QR code:", err);
-      setErrorMsg("⚠️ Invalid QR code format");
     }
-  }
-};
-
+  };
 
   return (
     <div className="container mx-auto p-6 max-w-2xl">
@@ -122,7 +168,7 @@ type QrScannerResult = {
       <div className="flex gap-2 mb-6">
         <Input
           placeholder="Enter Unique ID or Contact Number"
-          value={searchValue}
+          value={searchValue ?? ""}
           onChange={(e) => setSearchValue(e.target.value)}
           className="flex-1"
         />
@@ -147,12 +193,12 @@ type QrScannerResult = {
             <h2 className="text-xl font-semibold text-blue-700">
               ✅ Registration Found
             </h2>
-            <p><strong>Unique ID:</strong> {data.unique_id}</p>
-            <p><strong>Child Name:</strong> {data.child_name}</p>
-            <p><strong>Guardian:</strong> {data.guardian_name}</p>
-            <p><strong>Contact:</strong> {data.contact_number}</p>
-            <p><strong>District:</strong> {data.district}</p>
-            <p><strong>Palika:</strong> {data.palika}</p>
+            <p><strong>Unique ID:</strong> {data.unique_id ?? ""}</p>
+            <p><strong>Child Name:</strong> {data.child_name ?? ""}</p>
+            <p><strong>Guardian:</strong> {data.guardian_name ?? ""}</p>
+            <p><strong>Contact:</strong> {data.contact_number ?? ""}</p>
+            <p><strong>District:</strong> {data.district ?? ""}</p>
+            <p><strong>Palika:</strong> {data.palika ?? ""}</p>
 
             <p className="mt-4 text-blue-600 text-sm">
               👉 Click this card to continue to Step 3
@@ -170,7 +216,6 @@ type QrScannerResult = {
           <div className="flex justify-center items-center">
             <Scanner
               onScan={handleScan}
-              // components={{ audio: false }}
               styles={{ container: { width: "100%" } }}
             />
           </div>
