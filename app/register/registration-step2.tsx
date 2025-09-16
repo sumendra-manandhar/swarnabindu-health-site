@@ -69,7 +69,7 @@ export function RegistrationStep2({
     }
     if (mode === "self" && !data.eligibilityConfirmed) {
       newErrors.eligibilityConfirmed =
-        "कृपया पुष्टि गर्नुहोस् कि बालक/बालिका योग्य छ ।";
+        "कृपया पुष्टि गर्नुहोस् ।";
     }
 
     setErrors(newErrors);
