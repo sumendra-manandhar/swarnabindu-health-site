@@ -761,7 +761,7 @@ export default function ReportsPage() {
                             {record.serial_no}
                           </TableCell> */}
                           <TableCell>{record.childName}</TableCell>
-                          <TableCell>{record.dateOfBirth}</TableCell>
+                          <TableCell>{record.age}</TableCell>
                           <TableCell>
                             <Badge variant="outline">
                               {record.gender === "male" ? "पुरुष" : "महिला"}
