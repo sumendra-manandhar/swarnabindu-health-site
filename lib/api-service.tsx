@@ -3,7 +3,7 @@
 export class ApiService {
   static async createRegistration(registrationData: any) {
     try {
-      alert("api calling");
+      // alert("api calling");
 
       const token = localStorage.getItem("authToken"); // Get token from login
 

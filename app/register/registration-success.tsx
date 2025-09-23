@@ -256,8 +256,6 @@ export function RegistrationSuccess({
         created_at: new Date().toISOString(),
       };
 
-      debugger;
-
       // Determine table based on district
       const targetTable =
         registrationRecord.district === "चितवन"

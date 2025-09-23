@@ -276,7 +276,6 @@ export function RegistrationStep1({
   }, []);
 
   const getPalikasForDistrict = (): string[] => {
-    debugger;
     const district = getCurrentUserDistrict() || "दाङ";
 
     switch (district) {
@@ -296,7 +295,7 @@ export function RegistrationStep1({
       <CardHeader className=" mx-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-sm p-4">
         <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
           <User className="h-5 w-5" />
-           बच्चाको आधारभूत जानकारी | Child & Guardian Information
+          बच्चाको आधारभूत जानकारी | Child & Guardian Information
         </CardTitle>
       </CardHeader>
 
@@ -376,7 +375,7 @@ export function RegistrationStep1({
             {/* Child Name */}
             <div className="space-y-1">
               <Label htmlFor="childName" className="text-sm">
-               बच्चाको पूरा नाम *
+                बच्चाको पूरा नाम *
               </Label>
               <Input
                 id="childName"

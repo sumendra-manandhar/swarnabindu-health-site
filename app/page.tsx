@@ -58,7 +58,7 @@ const dashboardItems = [
     description: "Search and view self-registered users",
     icon: Search,
     color: "green",
-    roles: ["admin","volunteer"],
+    roles: ["admin", "volunteer"],
   },
   {
     href: "/reports",
@@ -113,6 +113,7 @@ export default function Home() {
   useEffect(() => {
     setIsOnline(navigator.onLine);
     loadStatistics();
+    fetchTotalCount();
 
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -137,6 +138,31 @@ export default function Home() {
     } catch {
       return undefined;
     }
+  };
+
+  const [totalCount, setTotalCount] = useState(0);
+
+  // const [registrations, setRegistrations] = useState<any[]>([]);
+  // const [totalCount, setTotalCount] = useState(0);
+  // const [loading, setLoading] = useState(false);
+  // const limit = 50;
+  // const [page, setPage] = useState(1);
+
+  const userDistrict = getUserDistrict() || "दाङ";
+  const registrationTable =
+    userDistrict === "चितवन" ? "chitwan_registrations" : "registrations";
+
+  // 🔹 Fetch only total count (run once)
+  const fetchTotalCount = async () => {
+    const { count, error } = await supabase
+      .from(registrationTable)
+      .select("*", { count: "exact", head: true });
+
+    if (error) {
+      console.error("Error fetching count:", error);
+      return;
+    }
+    setTotalCount(count || 0);
   };
 
   const loadStatistics = async () => {
@@ -177,9 +203,18 @@ export default function Home() {
       if (isOnline) {
         try {
           // Registrations based on district
-          const { data: registrations } = await supabase
+          // const { data: registrations } = await supabase
+          //   .from(registrationTable)
+          //   .select("id, gender");
+
+          const { data: registrations, error } = await supabase
             .from(registrationTable)
-            .select("id, gender");
+            .select("id, gender")
+            .range(0, 9999); // fetch first 10,000 rows
+
+          if (error) {
+            console.error("Error fetching registrations:", error);
+          }
 
           if (registrations) {
             onlineStats.totalPatients = registrations.length;
@@ -321,7 +356,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <div className=" text-5xl font-bold text-blue-800">
-                {stats.totalPatients}
+                {/* {stats.totalPatients} */} {totalCount}
               </div>
               <p className="text-xs text-blue-600 mt-1">Registered children</p>
             </CardContent>

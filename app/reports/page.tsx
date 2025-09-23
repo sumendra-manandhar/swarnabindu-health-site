@@ -80,7 +80,6 @@ interface ScreeningRecord {
   notes: string;
 }
 
-
 interface SelfRegistration {
   created_at: string;
   gender: string;
@@ -101,7 +100,6 @@ interface SelfRegistration {
   unique_id: string;
 }
 
-
 export default function ReportsPage() {
   const [registrations, setRegistrations] = useState<RegistrationRecord[]>([]);
   const [screenings, setScreenings] = useState<ScreeningRecord[]>([]);
@@ -111,127 +109,30 @@ export default function ReportsPage() {
   const [reactionFilter, setReactionFilter] = useState("all");
   const [districtFilter, setDistrictFilter] = useState("all");
   const [loading, setLoading] = useState(true);
-  const [selfRegistrations, setSelfRegistrations] = useState<SelfRegistration[]>([])
-
-useEffect(() => {
-  const fetchSelfRegs = async () => {
-
-    debugger
-    const { data, error } = await supabase
-      .from("self_registrations")   // 👈 table name
-      .select("*")
-      .order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching self regs:", error)
-    } else {
-      setSelfRegistrations(data || [])
-    }
-  }
-
-  fetchSelfRegs()
-}, [])
+  const [selfRegistrations, setSelfRegistrations] = useState<
+    SelfRegistration[]
+  >([]);
 
   useEffect(() => {
-    loadData();
+    const fetchSelfRegs = async () => {
+      const { data, error } = await supabase
+        .from("self_registrations") // 👈 table name
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching self regs:", error);
+      } else {
+        setSelfRegistrations(data || []);
+      }
+    };
+
+    fetchSelfRegs();
   }, []);
 
   useEffect(() => {
     filterData();
   }, [registrations, searchTerm, genderFilter, reactionFilter, districtFilter]);
-
-  // const loadData = async () => {
-  //   try {
-  //     setLoading(true);
-
-  //     const localRegistrations = OfflineStorage.getAllLocalRegistrations();
-  //     const localScreenings = OfflineStorage.getOfflineScreenings().map(
-  //       (s) => s.data
-  //     );
-
-  //     console.log(
-  //       "[v0] Loaded local registrations:",
-  //       localRegistrations.length
-  //     );
-  //     console.log("[v0] Sample registration:", localRegistrations[0]);
-
-  //     const isOnline =
-  //       typeof navigator !== "undefined" ? navigator.onLine : false;
-
-  //     if (isOnline) {
-  //       try {
-  //         // Fetch from Supabase
-  //         const { data: serverRegistrations, error: regError } = await supabase
-  //           .from("registrations")
-  //           .select("*")
-  //           .order("created_at", { ascending: false });
-
-  //         if (regError) throw regError;
-
-  //         console.log(
-  //           "[v0] Server registrations:",
-  //           serverRegistrations?.length || 0
-  //         );
-
-  //         const mappedServerData = (serverRegistrations || []).map(
-  //           (record) => ({
-  //             id: record.id,
-  //             childName:
-  //               record.childName || record.child_name || record.name || "",
-  //             dateOfBirth: record.dateOfBirth || record.date_of_birth || "",
-  //             age: record.age || "",
-  //             gender: record.gender || "",
-  //             guardianName:
-  //               record.guardianName ||
-  //               record.guardian_name ||
-  //               record.father_name ||
-  //               record.mother_name ||
-  //               "",
-  //             contactNumber:
-  //               record.contactNumber || record.contact_number || "",
-  //             dose_amount: record.dose_amount || record.doseAmount || "2",
-  //             dose_time:
-  //               record.dose_time || new Date().toLocaleTimeString("ne-NP"),
-  //             administered_by: record.administered_by || "स्वास्थ्यकर्मी",
-  //             child_reaction: record.child_reaction || "normal",
-  //             weight: record.weight || 0,
-  //             vaccination_status: record.vaccination_status || "completed",
-  //             date:
-  //               record.date ||
-  //               record.created_at ||
-  //               new Date().toLocaleDateString("ne-NP"),
-  //             serial_no:
-  //               record.serial_no || record.serialNo || `SB${record.id}`,
-  //             district: record.district || "दाङ",
-  //             palika: record.palika || "",
-  //             ward: record.ward || "",
-  //           })
-  //         );
-
-  //         setRegistrations([...localRegistrations, ...mappedServerData]);
-  //         setScreenings(localScreenings);
-  //       } catch (error) {
-  //         console.warn(
-  //           "[v0] Supabase fetch failed. Falling back to local.",
-  //           error
-  //         );
-  //         setRegistrations(localRegistrations);
-  //         setScreenings(localScreenings);
-  //       }
-  //     } else {
-  //       // Offline fallback
-  //       console.log("[v0] Offline mode - using local data only");
-  //       setRegistrations(localRegistrations);
-  //       setScreenings(localScreenings);
-  //     }
-  //   } catch (error) {
-  //     console.error("[v0] Error loading data:", error);
-  //     setRegistrations([]);
-  //     setScreenings([]);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const getUserDistrict = (): string | undefined => {
     if (typeof window === "undefined") return undefined;
@@ -246,94 +147,99 @@ useEffect(() => {
     }
   };
 
-  const loadData = async () => {
+  const [page, setPage] = useState(1);
+  // const [totalCount, setTotalCount] = useState(0);
+  const limit = 100; // rows per page
+
+  // total count state
+  const [totalCount, setTotalCount] = useState(0);
+
+  // const [registrations, setRegistrations] = useState<any[]>([]);
+  // const [totalCount, setTotalCount] = useState(0);
+  // const [loading, setLoading] = useState(false);
+  // const limit = 50;
+  // const [page, setPage] = useState(1);
+
+  const userDistrict = getUserDistrict() || "दाङ";
+  const registrationTable =
+    userDistrict === "चितवन" ? "chitwan_registrations" : "registrations";
+
+  // 🔹 Fetch only total count (run once)
+  const fetchTotalCount = async () => {
+    const { count, error } = await supabase
+      .from(registrationTable)
+      .select("*", { count: "exact", head: true });
+
+    if (error) {
+      console.error("Error fetching count:", error);
+      return;
+    }
+    setTotalCount(count || 0);
+  };
+
+  // 🔹 Fetch paginated rows (runs whenever `page` changes)
+  const fetchRegistrations = async (pageNum: number) => {
+    setLoading(true);
     try {
-      setLoading(true);
+      const from = (pageNum - 1) * limit;
+      const to = from + limit - 1;
 
-      // Get the user's district from localStorage
-      const userDistrict = getUserDistrict() || "दाङ"; // fallback to दाङ
-      const registrationTable =
-        userDistrict === "चितवन" ? "chitwan_registrations" : "registrations";
+      const { data, error } = await supabase
+        .from(registrationTable)
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(from, to);
 
-      console.log(`[v0] Loading data from table: ${registrationTable}`);
+      if (error) throw error;
 
-      // Load local offline data
-      const localRegistrations = OfflineStorage.getAllLocalRegistrations();
-      const localScreenings = OfflineStorage.getOfflineScreenings().map(
-        (s) => s.data
-      );
+      const mappedServerData = (data || []).map((record) => ({
+        id: record.id,
+        childName: record.childName || record.child_name || record.name || "",
+        dateOfBirth: record.dateOfBirth || record.date_of_birth || "",
+        age: record.age || "",
+        gender: record.gender || "",
+        guardianName:
+          record.guardianName ||
+          record.guardian_name ||
+          record.father_name ||
+          record.mother_name ||
+          "",
+        contactNumber: record.contactNumber || record.contact_number || "",
+        dose_amount: record.dose_amount || record.doseAmount || "2",
+        dose_time: record.dose_time || new Date().toLocaleTimeString("ne-NP"),
+        administered_by: record.administered_by || "स्वास्थ्यकर्मी",
+        child_reaction: record.child_reaction || "normal",
+        weight: record.weight || 0,
+        vaccination_status: record.vaccination_status || "completed",
+        date:
+          record.date ||
+          record.created_at ||
+          new Date().toLocaleDateString("ne-NP"),
+        serial_no: record.serial_no || record.serialNo || `SB${record.id}`,
+        district: record.district || userDistrict,
+        palika: record.palika || "",
+        ward: record.ward || "",
+      }));
 
-      const isOnline =
-        typeof navigator !== "undefined" ? navigator.onLine : false;
-
-      if (isOnline) {
-        try {
-          // Fetch from Supabase
-          const { data: serverRegistrations, error: regError } = await supabase
-            .from(registrationTable)
-            .select("*")
-            .order("created_at", { ascending: false });
-
-          if (regError) throw regError;
-
-          const mappedServerData = (serverRegistrations || []).map(
-            (record) => ({
-              id: record.id,
-              childName:
-                record.childName || record.child_name || record.name || "",
-              dateOfBirth: record.dateOfBirth || record.date_of_birth || "",
-              age: record.age || "",
-              gender: record.gender || "",
-              guardianName:
-                record.guardianName ||
-                record.guardian_name ||
-                record.father_name ||
-                record.mother_name ||
-                "",
-              contactNumber:
-                record.contactNumber || record.contact_number || "",
-              dose_amount: record.dose_amount || record.doseAmount || "2",
-              dose_time:
-                record.dose_time || new Date().toLocaleTimeString("ne-NP"),
-              administered_by: record.administered_by || "स्वास्थ्यकर्मी",
-              child_reaction: record.child_reaction || "normal",
-              weight: record.weight || 0,
-              vaccination_status: record.vaccination_status || "completed",
-              date:
-                record.date ||
-                record.created_at ||
-                new Date().toLocaleDateString("ne-NP"),
-              serial_no:
-                record.serial_no || record.serialNo || `SB${record.id}`,
-              district: record.district || userDistrict,
-              palika: record.palika || "",
-              ward: record.ward || "",
-            })
-          );
-
-          setRegistrations([...localRegistrations, ...mappedServerData]);
-          setScreenings(localScreenings);
-        } catch (error) {
-          console.warn(
-            `[v0] Supabase fetch failed for table ${registrationTable}. Falling back to local.`,
-            error
-          );
-          setRegistrations(localRegistrations);
-          setScreenings(localScreenings);
-        }
-      } else {
-        console.log("[v0] Offline mode - using local data only");
-        setRegistrations(localRegistrations);
-        setScreenings(localScreenings);
-      }
-    } catch (error) {
-      console.error("[v0] Error loading data:", error);
+      setRegistrations(mappedServerData);
+    } catch (err) {
+      console.error("Error fetching registrations:", err);
       setRegistrations([]);
-      setScreenings([]);
     } finally {
       setLoading(false);
     }
   };
+
+  // 🔹 On mount → get total count once
+  useEffect(() => {
+    fetchTotalCount();
+    fetchRegistrations(page);
+  }, []);
+
+  // 🔹 On page change → only fetch registrations
+  useEffect(() => {
+    fetchRegistrations(page);
+  }, [page]);
 
   const filterData = () => {
     let filtered = registrations;
@@ -434,6 +340,7 @@ useEffect(() => {
 
   const getStatistics = () => {
     const total = registrations.length;
+
     const totalScreenings = screenings.length;
     const maleCount = registrations.filter((r) => r.gender === "male").length;
     const femaleCount = registrations.filter(
@@ -534,6 +441,8 @@ useEffect(() => {
     );
   }
 
+  const totalPages = Math.ceil(totalCount / limit);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -542,7 +451,7 @@ useEffect(() => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                रिपोर्ट र विश्लेषणsss
+                रिपोर्ट र विश्लेषण
               </h1>
               <p className="text-gray-600">
                 स्वर्णबिन्दु प्राशन कार्यक्रम डाटा विश्लेषण
@@ -552,6 +461,11 @@ useEffect(() => {
               <Button variant="outline">फिर्ता</Button>
             </Link>
           </div>
+
+          {/* <p className="text-sm text-muted-foreground">
+            Total entries: {totalCount}
+            दर्ता सूची (Filtered: {filteredData.length} / Total: {totalCount})
+          </p> */}
 
           {/* Enhanced Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
@@ -564,7 +478,7 @@ useEffect(() => {
                       कुल दर्ता
                     </p>
                     <p className="text-2xl font-bold text-blue-900">
-                      {stats.total}
+                      {totalCount}
                     </p>
                   </div>
                 </div>
@@ -643,10 +557,10 @@ useEffect(() => {
           </div>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs defaultValue="registrations" className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">सिंहावलोकन</TabsTrigger>
             <TabsTrigger value="registrations">दर्ता सूची</TabsTrigger>
+            <TabsTrigger value="overview">सिंहावलोकन</TabsTrigger>
             <TabsTrigger value="selfRegistrations">SELF</TabsTrigger>
             <TabsTrigger value="screenings">स्क्रिनिङ लग</TabsTrigger>
             <TabsTrigger value="analytics">विश्लेषण</TabsTrigger>
@@ -819,7 +733,7 @@ useEffect(() => {
             {/* Registrations Table */}
             <Card>
               <CardHeader>
-                <CardTitle>दर्ता सूची ({filteredData.length})</CardTitle>
+                <CardTitle>दर्ता सूची ({totalCount})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -879,82 +793,107 @@ useEffect(() => {
                     </TableBody>
                   </Table>
                 </div>
+                {/* Pagination Controls */}
+                <div className="flex justify-between items-center mt-4">
+                  <Button
+                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                    disabled={page === 1 || loading}
+                  >
+                    Previous
+                  </Button>
+
+                  <p>
+                    Page {page} of {totalPages} ({totalCount} total entries)
+                  </p>
+
+                  <Button
+                    onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                    disabled={page === totalPages || loading}
+                  >
+                    Next
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
           {/* Self Registration */}
-{/* Self Registration */}
-<TabsContent value="selfRegistrations">
-  <Card>
-    <CardHeader>
-      <CardTitle>Self Registered Users</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="overflow-x-auto">
-  <Table>
-  <TableHeader>
-    <TableRow>
-
-      <TableHead>ID</TableHead>
-      <TableHead>बालकको नाम</TableHead>
-      <TableHead>उमेर</TableHead>
-      <TableHead>लिङ्ग</TableHead>
-      <TableHead>अभिभावक</TableHead>
-      <TableHead>बुवाको नाम</TableHead>
-      <TableHead>आमाको नाम</TableHead>
-      <TableHead>जिल्ला</TableHead>
-      <TableHead>Palika</TableHead>
-      <TableHead>सम्पर्क</TableHead>
-      <TableHead>उचाइ</TableHead>
-      <TableHead>तौल</TableHead>
-      <TableHead>अलर्जी</TableHead>
-      <TableHead>औषधि इतिहास</TableHead>
-      <TableHead>दर्ता मिति</TableHead>
-      <TableHead>स्थिति</TableHead>
-    </TableRow>
-  </TableHeader>
-  <TableBody>
-    {selfRegistrations.map((record) => (
-      <TableRow key={record.unique_id}>
-        <TableCell>{record.unique_id}</TableCell>
-        <TableCell>{record.child_name}</TableCell>
-        <TableCell>{record.age}</TableCell>
-        <TableCell>
-          <Badge variant="outline">
-            {record.gender === "male" ? "पुरुष" : "महिला"}
-          </Badge>
-        </TableCell>
-        <TableCell>{record.guardian_name}</TableCell>
-        <TableCell>{record.father_name}</TableCell>
-        <TableCell>{record.mother_name}</TableCell>
-        <TableCell>{record.district}</TableCell>
-        <TableCell>{record.palika}</TableCell>
-        <TableCell>{record.contact_number}</TableCell>
-        <TableCell>{record.height || "-"}</TableCell>
-        <TableCell>{record.weight} kg</TableCell>
-        <TableCell>{record.allergies}</TableCell>
-        <TableCell>{record.previous_medications}</TableCell>
-        <TableCell>
-          {new Date(record.created_at).toLocaleDateString("ne-NP")}
-        </TableCell>
-        <TableCell>
-          <Badge
-            variant={record.vaccination_status === "new" ? "default" : "secondary"}
-          >
-            {record.vaccination_status === "new" ? "नयाँ" : "पूरा"}
-          </Badge>
-        </TableCell>
-      </TableRow>
-    ))}
-  </TableBody>
-</Table>
-
-      </div>
-    </CardContent>
-  </Card>
-</TabsContent>
-
+          {/* Self Registration */}
+          <TabsContent value="selfRegistrations">
+            <Card>
+              <CardHeader>
+                <CardTitle>Self Registered Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>बालकको नाम</TableHead>
+                        <TableHead>उमेर</TableHead>
+                        <TableHead>लिङ्ग</TableHead>
+                        <TableHead>अभिभावक</TableHead>
+                        <TableHead>बुवाको नाम</TableHead>
+                        <TableHead>आमाको नाम</TableHead>
+                        <TableHead>जिल्ला</TableHead>
+                        <TableHead>Palika</TableHead>
+                        <TableHead>सम्पर्क</TableHead>
+                        <TableHead>उचाइ</TableHead>
+                        <TableHead>तौल</TableHead>
+                        <TableHead>अलर्जी</TableHead>
+                        <TableHead>औषधि इतिहास</TableHead>
+                        <TableHead>दर्ता मिति</TableHead>
+                        <TableHead>स्थिति</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selfRegistrations.map((record) => (
+                        <TableRow key={record.unique_id}>
+                          <TableCell>{record.unique_id}</TableCell>
+                          <TableCell>{record.child_name}</TableCell>
+                          <TableCell>{record.age}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {record.gender === "male" ? "पुरुष" : "महिला"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{record.guardian_name}</TableCell>
+                          <TableCell>{record.father_name}</TableCell>
+                          <TableCell>{record.mother_name}</TableCell>
+                          <TableCell>{record.district}</TableCell>
+                          <TableCell>{record.palika}</TableCell>
+                          <TableCell>{record.contact_number}</TableCell>
+                          <TableCell>{record.height || "-"}</TableCell>
+                          <TableCell>{record.weight} kg</TableCell>
+                          <TableCell>{record.allergies}</TableCell>
+                          <TableCell>{record.previous_medications}</TableCell>
+                          <TableCell>
+                            {new Date(record.created_at).toLocaleDateString(
+                              "ne-NP"
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                record.vaccination_status === "new"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {record.vaccination_status === "new"
+                                ? "नयाँ"
+                                : "पूरा"}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="screenings" className="space-y-6">
             <Card>
