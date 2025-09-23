@@ -188,7 +188,7 @@ export default function ReportsPage() {
         .from(registrationTable)
         .select("*")
         .order("created_at", { ascending: false })
-        .range(from, to);
+        .range(0, 3500);
 
       if (error) throw error;
 
@@ -794,7 +794,7 @@ export default function ReportsPage() {
                   </Table>
                 </div>
                 {/* Pagination Controls */}
-                <div className="flex justify-between items-center mt-4">
+                {/* <div className="flex justify-between items-center mt-4">
                   <Button
                     onClick={() => setPage((p) => Math.max(p - 1, 1))}
                     disabled={page === 1 || loading}
@@ -812,7 +812,7 @@ export default function ReportsPage() {
                   >
                     Next
                   </Button>
-                </div>
+                </div> */}
               </CardContent>
             </Card>
           </TabsContent>
