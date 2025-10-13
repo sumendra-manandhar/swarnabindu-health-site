@@ -27,7 +27,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { OfflineStorage } from "@/lib/offline-storage";
-// import { DatabaseService } from "@/lib/supabase"
+// import { DatabaseService, supabase } from "@/lib/supabase";
 import {
   ArrowLeft,
   Save,
@@ -42,6 +42,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 interface Patient {
   id: string;
@@ -182,14 +183,41 @@ export default function NewScreeningPage() {
         });
       } else if (isOnline) {
         // Try to load from Supabase
-        // try {
-        //   const { data, error } = await DatabaseService.getRegistrationById(patientId)
-        //   if (data && !error) {
-        //     setPatient(data)
-        //   }
-        // } catch (error) {
-        //   console.error("Error loading patient from database:", error)
-        // }
+
+        debugger;
+        try {
+          const { data, error } = await supabase
+            .from("registrations")
+            .select("*")
+            .or(`reg_id.eq.${patientId},contact_number.eq.${patientId}`)
+            .limit(1)
+            .single();
+
+          if (error) {
+            console.error("Error loading patient from Supabase:", error);
+          } else if (data) {
+            setPatient({
+              id: data.id,
+              serial_no: data.serial_no || "",
+              childName: data.childName || "",
+              dateOfBirth: data.birth_date || "",
+              age: data.age || "",
+              gender: data.gender || "",
+              guardianName: data.guardian_name || "",
+              fatherName: data.father_name || "",
+              motherName: data.mother_name || "",
+              contactNumber: data.contact_number || "",
+              district: data.district || "",
+              palika: data.palika || "",
+              ward: data.ward || "",
+              date: data.date || data.created_at,
+            });
+          } else {
+            console.warn("No matching patient found in Supabase.");
+          }
+        } catch (error) {
+          console.error("Error fetching patient:", error);
+        }
       }
     } catch (error) {
       console.error("Error loading patient:", error);
@@ -200,7 +228,7 @@ export default function NewScreeningPage() {
 
   const loadDoseHistory = async () => {
     try {
-      // Load from offline storage first
+      // Load offline screenings
       const offlineScreenings = OfflineStorage.getOfflineScreenings();
       const patientScreenings = offlineScreenings
         .filter((screening) => screening.data.patient_id === patientId)
@@ -214,30 +242,41 @@ export default function NewScreeningPage() {
           notes: screening.data.notes,
         }));
 
+      let mergedHistory = [...patientScreenings];
+
       if (isOnline) {
-        // try {
-        //   const { data, error } = await DatabaseService.getScreenings(
-        //     patientId
-        //   );
-        //   if (data && !error) {
-        //     const onlineHistory = data.map((screening: any) => ({
-        //       id: screening.id,
-        //       date: screening.screening_date,
-        //       dose_amount: screening.dose_amount,
-        //       administered_by: screening.administered_by,
-        //       reaction: screening.child_reaction,
-        //       batch_number: screening.batch_number,
-        //       notes: screening.notes,
-        //     }));
-        //     setDoseHistory([...patientScreenings, ...onlineHistory]);
-        //     return;
-        //   }
-        // } catch (error) {
-        //   console.error("Error loading dose history from database:", error);
-        // }
+        try {
+          debugger;
+          const { data, error } = await supabase
+            .from("dose_logs")
+            .select("*")
+            .eq("registration_id", patientId)
+            .order("created_at", { ascending: false });
+
+          if (error) {
+            console.error(
+              "❌ Error loading dose history from Supabase:",
+              error
+            );
+          } else if (data && data.length > 0) {
+            const onlineHistory = data.map((dose: any) => ({
+              id: dose.id,
+              date: dose.created_at,
+              dose_amount: dose.dose_type || "", // use appropriate field
+              administered_by: dose.administered_by || "",
+              reaction: dose.child_reaction || "normal",
+              batch_number: dose.batch_number || "",
+              notes: dose.notes || "",
+            }));
+            mergedHistory = [...mergedHistory, ...onlineHistory];
+          }
+        } catch (err) {
+          console.error("⚠️ Error fetching dose history:", err);
+        }
       }
 
-      setDoseHistory(patientScreenings);
+      // Set merged data once
+      setDoseHistory(mergedHistory);
     } catch (error) {
       console.error("Error loading dose history:", error);
     }
