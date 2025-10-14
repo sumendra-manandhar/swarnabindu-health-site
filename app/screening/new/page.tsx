@@ -138,34 +138,6 @@ export default function NewScreeningPage() {
     };
   }, [patientId]);
 
-  useEffect(() => {
-    if (patient) {
-      const birth = new Date(patient.dateOfBirth);
-      const today = new Date();
-      const ageInMonths =
-        (today.getFullYear() - birth.getFullYear()) * 12 +
-        (today.getMonth() - birth.getMonth());
-
-      let recommendation = { amount: "1", description: "सामान्य" };
-      if (ageInMonths >= 6 && ageInMonths <= 12)
-        recommendation = { amount: "1", description: "६-१२ महिना" };
-      else if (ageInMonths > 12 && ageInMonths <= 24)
-        recommendation = { amount: "2", description: "१-२ वर्ष" };
-      else if (ageInMonths > 24 && ageInMonths <= 60)
-        recommendation = { amount: "4", description: "२-५ वर्ष" };
-
-      setDoseRecommendation(recommendation);
-
-      // also update screeningData with recommended dose
-      setScreeningData((prev) => ({
-        ...prev,
-        dose_amount: recommendation.amount,
-        batch_number: generateBatchNumber(),
-        next_dose_date: calculateNextDoseDate(),
-      }));
-    }
-  }, [patient]);
-
   const loadPatient = async () => {
     setLoading(true);
     try {
@@ -205,6 +177,8 @@ export default function NewScreeningPage() {
             .limit(1)
             .single();
 
+          debugger;
+
           if (error) {
             console.error("Error loading patient from Supabase:", error);
           } else if (data) {
@@ -225,6 +199,31 @@ export default function NewScreeningPage() {
               ward: data.ward || "",
               date: data.date || data.created_at,
             });
+
+            debugger;
+            const birth = new Date(data.date_of_birth);
+            const today = new Date();
+            const ageInMonths =
+              (today.getFullYear() - birth.getFullYear()) * 12 +
+              (today.getMonth() - birth.getMonth());
+
+            let recommendation = { amount: "1", description: "सामान्य" };
+            if (ageInMonths >= 6 && ageInMonths <= 12)
+              recommendation = { amount: "1", description: "६-१२ महिना" };
+            else if (ageInMonths > 12 && ageInMonths <= 24)
+              recommendation = { amount: "2", description: "१-२ वर्ष" };
+            else if (ageInMonths > 24 && ageInMonths <= 60)
+              recommendation = { amount: "4", description: "२-५ वर्ष" };
+
+            setDoseRecommendation(recommendation);
+
+            // also update screeningData with recommended dose
+            setScreeningData((prev) => ({
+              ...prev,
+              dose_amount: recommendation.amount,
+              batch_number: generateBatchNumber(),
+              next_dose_date: calculateNextDoseDate(),
+            }));
           } else {
             console.warn("No matching patient found in Supabase.");
           }
