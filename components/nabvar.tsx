@@ -34,32 +34,32 @@ const navigationItems = [
     href: "/",
     label: "गृहपृष्ठ",
     icon: Home,
-    roles: ["admin", "volunteer", "inputter"],
+    roles: ["premium", "standard", "basic"],
   },
   {
     href: "/register",
     label: "नयाँ दर्ता",
     icon: UserPlus,
-    roles: ["admin", "volunteer", "inputter"],
+    roles: ["premium", "standard", "basic"],
   },
   {
     href: "/screening",
     label: "स्क्रिनिङ",
     icon: Activity,
-    roles: ["admin", "volunteer"],
+    roles: ["premium", "standard"],
   },
 
   {
     href: "/reports",
     label: "रिपोर्ट",
     icon: FileText,
-    roles: ["admin", "inputter"],
+    roles: ["premium", "basic"],
   },
   {
     href: "/sync",
     label: "डाटा सिंक",
     icon: Database,
-    roles: ["admin", "volunteer", "inputter"],
+    roles: ["premium", "standard", "basic"],
   },
 ];
 
@@ -77,7 +77,7 @@ export default function Navbar() {
     if (item.href === "/reports") {
       return canAccessReports();
     }
-    return item.roles.includes(user?.role || "volunteer");
+    return item.roles.includes(user?.role || "standard");
   });
 
   return (
@@ -153,10 +153,12 @@ export default function Navbar() {
                     <User className="h-4 w-4" />
                     <span className="hidden sm:inline">{user.name}</span>
                     <Badge
-                      variant={user.role === "admin" ? "default" : "secondary"}
+                      variant={
+                        user.role === "premium" ? "default" : "secondary"
+                      }
                       className="text-xs"
                     >
-                      {user.role === "admin" ? "प्रशासक" : "स्वयंसेवक"}
+                      {user.role === "premium" ? "प्रशासक" : "स्वयंसेवक"}
                     </Badge>
                   </Button>
                 </DropdownMenuTrigger>

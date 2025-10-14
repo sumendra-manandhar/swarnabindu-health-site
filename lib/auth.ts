@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   username: string;
-  role: "admin" | "volunteer" | "inputter";
+  role: "premium" | "standard" | "basic";
   district?: string;
 }
 
@@ -20,7 +20,7 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       id: "1",
       name: "प्रशासक",
       username: "Dang Survey",
-      role: "admin",
+      role: "premium",
       district: "दाङ",
     },
   },
@@ -30,7 +30,7 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       id: "1",
       name: "प्रशासक",
       username: "Chitwan Survey",
-      role: "inputter",
+      role: "basic",
       district: "चितवन",
     },
   },
@@ -40,7 +40,7 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       id: "1",
       name: "प्रशासक",
       username: "Butwal Survey",
-      role: "inputter",
+      role: "basic",
       district: "बुटवल",
     },
   },
@@ -50,7 +50,7 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       id: "2",
       name: "Prem Kumar Tirwari",
       username: "premkumar",
-      role: "volunteer",
+      role: "standard",
       district: "दाङ",
     },
   },
@@ -60,7 +60,7 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       id: "3",
       name: "Nawaraj Dangi",
       username: "nawarajdangi",
-      role: "volunteer",
+      role: "standard",
       district: "दाङ",
     },
   },
@@ -70,7 +70,7 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       id: "4",
       name: "Rajan Chaudhary",
       username: "rajanchaudhary",
-      role: "volunteer",
+      role: "standard",
       district: "दाङ",
     },
   },
@@ -80,7 +80,7 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       id: "5",
       name: "Hari Rijal",
       username: "haririjal",
-      role: "volunteer",
+      role: "standard",
       district: "दाङ",
     },
   },

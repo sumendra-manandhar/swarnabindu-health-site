@@ -28,7 +28,7 @@ import { supabase } from "@/lib/supabase";
 interface Patient {
   id: string;
   serial_no: string;
-  childName: string;
+  child_name: string;
   birth_date: string;
   age: string;
   gender: string;
@@ -49,8 +49,8 @@ export default function ScreeningPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSearch = async () => {
-    const query = searchTerm.trim();
+  const handleSearch = async (queryInput?: string) => {
+    const query = (queryInput || searchTerm).trim();
 
     if (!query) {
       setErrorMsg("⚠️ Please enter Unique ID or Contact Number");
@@ -77,7 +77,7 @@ export default function ScreeningPage() {
           reg_id: reg.reg_id,
           id: reg.id,
           serial_no: reg.serial_no || "",
-          childName: reg.childName || "",
+          child_name: reg.child_name || "",
           birth_date: reg.birth_date || "",
           age: reg.age || "",
           gender: reg.gender || "",
@@ -145,12 +145,31 @@ export default function ScreeningPage() {
               <Input
                 placeholder="Enter Unique ID or Contact Number..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                onChange={(e) => setSearchTerm(e.target.value.trim())}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === "Tab") {
+                    e.preventDefault();
+
+                    let query = searchTerm;
+
+                    if (/^\d+$/.test(searchTerm) && searchTerm.length <= 6) {
+                      query = `REG-${searchTerm.padStart(4, "0")}DNG`;
+                      setSearchTerm(query); // update input display
+                    }
+
+                    handleSearch(query); // pass the formatted query directly
+                  }
+                }}
                 className="pl-10"
               />
+              {/* Hint below the input */}
+              <p className="text-xs text-muted-foreground mt-1">
+                Tip: You can type only the number and press <kbd>Tab</kbd> to
+                auto-fill the full REG ID (REG-XXXXDNG). You can also search
+                using the contact number.
+              </p>
             </div>
-            <Button onClick={handleSearch} disabled={loading}>
+            <Button onClick={() => handleSearch()} disabled={loading}>
               {loading ? "Searching..." : "Search"}
             </Button>
           </div>
@@ -184,7 +203,7 @@ export default function ScreeningPage() {
                           <div className="flex items-center gap-4 mb-4">
                             <div>
                               <h3 className="text-xl font-bold text-blue-600">
-                                {patient.childName}
+                                {patient.child_name}
                               </h3>
                               <p className="text-sm text-muted-foreground">
                                 Serial: {patient.reg_id}

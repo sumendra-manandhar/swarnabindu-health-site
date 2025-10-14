@@ -26,7 +26,7 @@ export default function AuthGuard({
         return;
       }
 
-      if (requireAdmin && user?.role !== "admin") {
+      if (requireAdmin && user?.role !== "premium") {
         router.push("/unauthorized");
         return;
       }
@@ -44,7 +44,7 @@ export default function AuthGuard({
     );
   }
 
-  if (!isAuthenticated || (requireAdmin && user?.role !== "admin")) {
+  if (!isAuthenticated || (requireAdmin && user?.role !== "premium")) {
     return null;
   }
 

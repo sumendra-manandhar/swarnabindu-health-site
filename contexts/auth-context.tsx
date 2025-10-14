@@ -76,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const canAccessReports = (): boolean => {
-    return ["admin", "inputter"].includes(authState.user?.role ?? "");
+    return ["premium", "basic"].includes(authState.user?.role ?? "");
   };
 
   const value: AuthContextType = {

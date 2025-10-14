@@ -56,10 +56,10 @@ interface RegistrationData {
 
 export default function RegisterPage() {
   const searchParams = useSearchParams();
-  // const mode = searchParams.get("mode") || "volunteer"; // default to volunteer
+  // const mode = searchParams.get("mode") || "standard"; // default to volunteer
 
   const pathname = usePathname();
-  const mode = pathname.includes("/selfregister") ? "self" : "volunteer";
+  const mode = pathname.includes("/selfregister") ? "self" : "standard";
   localStorage.setItem("registrationMode", mode); // persist mode
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -421,7 +421,7 @@ export default function RegisterPage() {
               onPrev={prevStep}
             />
           )}
-          {mode === "volunteer" && currentStep === 3 && (
+          {mode === "standard" && currentStep === 3 && (
             <RegistrationStep3
               data={registrationData}
               onUpdate={updateRegistrationData}

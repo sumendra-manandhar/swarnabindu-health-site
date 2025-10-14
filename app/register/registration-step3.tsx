@@ -48,7 +48,34 @@ export function RegistrationStep3({
     "डा. प्रतिक्षा के.सी ",
   ];
 
+  const butwaladministrators = [
+    "डा. सन्दीप कार्की",
+    "डा. योगेश ढकाल",
+    "डा. दिपक आचार्य",
+    "डा. नेहा दूवाल",
+  ];
+
   useCustomTabNavigation();
+
+  const getUserDistrict = (): string | undefined => {
+    if (typeof window === "undefined") return undefined;
+    const storedUser = localStorage.getItem("auth_user");
+    if (!storedUser) return undefined;
+    try {
+      const user = JSON.parse(storedUser) as { district?: string };
+      return user.district;
+    } catch {
+      return undefined;
+    }
+  };
+
+  // Determine district and prefill administrator if needed
+  useEffect(() => {
+    if (!data.district) {
+      const userDistrict = getUserDistrict() || "दाङ";
+      onUpdate({ district: userDistrict });
+    }
+  }, []);
 
   useEffect(() => {
     if (!data.batchNumber) {
@@ -119,6 +146,10 @@ export function RegistrationStep3({
   };
 
   const doseRecommendation = getDoseRecommendation();
+
+  // Dynamically pick administrator list
+  const administrators =
+    data.district === "बुटवल" ? butwaladministrators : commonAdministrators;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -254,7 +285,7 @@ export function RegistrationStep3({
             <div>
               <Label>सेवन गराउने व्यक्ति *</Label>
               <div className="flex gap-2 mt-2 flex-wrap">
-                {commonAdministrators.map((name) => (
+                {administrators.map((name) => (
                   <Button
                     key={name}
                     variant={
@@ -262,7 +293,6 @@ export function RegistrationStep3({
                     }
                     size="sm"
                     onClick={() => onUpdate({ administeredBy: name })}
-                    className="important"
                   >
                     {name}
                   </Button>
@@ -322,8 +352,7 @@ export function RegistrationStep3({
                   }
                 />
                 <Label>
-                  म पुष्टि गर्छु कि यो बच्चा योग्य छ र कुनै निषेधित अवस्था
-                  छैन।
+                  म पुष्टि गर्छु कि यो बच्चा योग्य छ र कुनै निषेधित अवस्था छैन।
                 </Label>
               </div>
               {/* {errors.eligibilityConfirmed && (

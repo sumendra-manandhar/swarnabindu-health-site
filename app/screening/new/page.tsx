@@ -47,7 +47,7 @@ import { supabase } from "@/lib/supabase";
 interface Patient {
   id: string;
   serial_no: string;
-  childName: string;
+  child_name: string;
   dateOfBirth: string;
   age: string;
   gender: string;
@@ -59,6 +59,7 @@ interface Patient {
   palika: string;
   ward: string;
   date: string;
+  reg_id: string;
 }
 
 interface DoseHistory {
@@ -139,17 +140,28 @@ export default function NewScreeningPage() {
 
   useEffect(() => {
     if (patient) {
-      // Auto-calculate dose based on age
-      const ageInMonths = calculateAgeInMonths(patient.dateOfBirth);
-      const recommendedDose = calculateDoseAmount(ageInMonths);
-      const batchNumber = generateBatchNumber();
-      const nextDoseDate = calculateNextDoseDate();
+      const birth = new Date(patient.dateOfBirth);
+      const today = new Date();
+      const ageInMonths =
+        (today.getFullYear() - birth.getFullYear()) * 12 +
+        (today.getMonth() - birth.getMonth());
 
+      let recommendation = { amount: "1", description: "सामान्य" };
+      if (ageInMonths >= 6 && ageInMonths <= 12)
+        recommendation = { amount: "1", description: "६-१२ महिना" };
+      else if (ageInMonths > 12 && ageInMonths <= 24)
+        recommendation = { amount: "2", description: "१-२ वर्ष" };
+      else if (ageInMonths > 24 && ageInMonths <= 60)
+        recommendation = { amount: "4", description: "२-५ वर्ष" };
+
+      setDoseRecommendation(recommendation);
+
+      // also update screeningData with recommended dose
       setScreeningData((prev) => ({
         ...prev,
-        dose_amount: recommendedDose,
-        batch_number: batchNumber,
-        next_dose_date: nextDoseDate,
+        dose_amount: recommendation.amount,
+        batch_number: generateBatchNumber(),
+        next_dose_date: calculateNextDoseDate(),
       }));
     }
   }, [patient]);
@@ -168,7 +180,8 @@ export default function NewScreeningPage() {
         setPatient({
           id: offlinePatient.localId || offlinePatient.id,
           serial_no: offlinePatient.serial_no || "",
-          childName: offlinePatient.childName || "",
+          child_name: offlinePatient.child_name || "",
+          reg_id: offlinePatient.reg_id || "",
           dateOfBirth: offlinePatient.dateOfBirth || "",
           age: offlinePatient.age || "",
           gender: offlinePatient.gender || "",
@@ -198,7 +211,8 @@ export default function NewScreeningPage() {
             setPatient({
               id: data.id,
               serial_no: data.serial_no || "",
-              childName: data.childName || "",
+              child_name: data.child_name || "",
+              reg_id: data.reg_id || "",
               dateOfBirth: data.birth_date || "",
               age: data.age || "",
               gender: data.gender || "",
@@ -295,6 +309,16 @@ export default function NewScreeningPage() {
     if (ageInMonths <= 60) return "5";
     return "6";
   };
+
+  const [doseRecommendation, setDoseRecommendation] = useState<{
+    amount: string;
+    description: string;
+  }>({
+    amount: "1",
+    description: "सामान्य",
+  });
+
+  //  correct code
 
   const generateBatchNumber = (): string => {
     const date = new Date();
@@ -473,13 +497,15 @@ export default function NewScreeningPage() {
                     <Label className="text-sm font-medium text-gray-600">
                       नाम:
                     </Label>
-                    <p className="text-lg font-semibold">{patient.childName}</p>
+                    <p className="text-lg font-semibold">
+                      {patient.child_name}
+                    </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">
                       सिरियल नम्बर:
                     </Label>
-                    <p className="font-mono">{patient.serial_no}</p>
+                    <p className="font-mono">{patient.reg_id}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -534,7 +560,39 @@ export default function NewScreeningPage() {
             </CardContent>
           </Card>
 
+          {/* Dose Recommendation */}
+          <Card className="border-green-200 bg-green-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Droplets className="h-5 w-5" />
+                सिफारिस मात्रा
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-700">
+                  उमेर समूह: {doseRecommendation.description}
+                </p>
+                <p className="text-lg font-bold text-green-900">
+                  {doseRecommendation.amount} थोपा
+                </p>
+              </div>
+              <div className="flex gap-1">
+                {Array.from(
+                  { length: Number.parseInt(doseRecommendation.amount) },
+                  (_, i) => (
+                    <div
+                      key={i}
+                      className="w-3 h-3 bg-amber-400 rounded-full"
+                    ></div>
+                  )
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Dose History */}
+
           <Card className="border-green-200 bg-green-50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

@@ -78,6 +78,7 @@ interface ScreeningRecord {
   administered_by: string;
   batch_number: string;
   notes: string;
+  screening_type?: string;
 }
 
 interface SelfRegistration {
@@ -112,6 +113,16 @@ export default function ReportsPage() {
   const [selfRegistrations, setSelfRegistrations] = useState<
     SelfRegistration[]
   >([]);
+
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("auth_user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setRole(parsedUser.role);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchSelfRegs = async () => {
@@ -154,6 +165,7 @@ export default function ReportsPage() {
   const getUserDistrict = (): string | undefined => {
     if (typeof window === "undefined") return undefined;
     const storedUser = localStorage.getItem("auth_user");
+    // "{"id":"1","name":"प्रशासक","username":"Dang Survey","role":"premium","district":"दाङ"}"
     if (!storedUser) return undefined;
 
     try {
@@ -398,9 +410,9 @@ export default function ReportsPage() {
       ).length,
     };
 
-    // District wise distribution
+    // Registrations by district
     const districtStats = registrations.reduce((acc, reg) => {
-      acc[reg.district] = (acc[reg.district] || 0) + 1;
+      acc[reg.palika] = (acc[reg.palika] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
@@ -593,15 +605,22 @@ export default function ReportsPage() {
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="registrations">दर्ता सूची</TabsTrigger>
             <TabsTrigger value="overview">सिंहावलोकन</TabsTrigger>
-            <TabsTrigger value="selfRegistrations">SELF</TabsTrigger>
-            <TabsTrigger value="screenings">स्क्रिनिङ लग</TabsTrigger>
-            <TabsTrigger value="analytics">विश्लेषण</TabsTrigger>
-            <TabsTrigger value="trends">प्रवृत्ति</TabsTrigger>
+            <TabsTrigger value="screenings"> स्वर्णप्राशन लग</TabsTrigger>
+
+            {/* Tabs only visible for admin */}
+            {role === "premium" && (
+              <>
+                <TabsTrigger value="selfRegistrations">SELF</TabsTrigger>
+                <TabsTrigger value="analytics">विश्लेषण</TabsTrigger>
+                <TabsTrigger value="trends">प्रवृत्ति</TabsTrigger>
+              </>
+            )}
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Gender Distribution */}
+
               <Card>
                 <CardHeader>
                   <CardTitle>लिङ्ग वितरण</CardTitle>
@@ -614,9 +633,9 @@ export default function ReportsPage() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        // label={({ name, percent }) =>
-                        //   `${name} ${(percent * 100).toFixed(0)}%`
-                        // }
+                        label={({ name, percent }) =>
+                          `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                        }
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
@@ -652,7 +671,7 @@ export default function ReportsPage() {
               {/* District Distribution */}
               <Card>
                 <CardHeader>
-                  <CardTitle>जिल्ला अनुसार वितरण</CardTitle>
+                  <CardTitle>पालिका अनुसार वितरण</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -668,7 +687,7 @@ export default function ReportsPage() {
               </Card>
 
               {/* Reaction Analysis */}
-              <Card>
+              {/* <Card>
                 <CardHeader>
                   <CardTitle>प्रतिक्रिया विश्लेषण</CardTitle>
                 </CardHeader>
@@ -695,7 +714,7 @@ export default function ReportsPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
-              </Card>
+              </Card> */}
             </div>
           </TabsContent>
 
@@ -932,7 +951,7 @@ export default function ReportsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Droplets className="h-5 w-5" />
-                  स्वर्णप्राशन स्क्रिनिङ लग
+                  स्वर्णप्राशन लग
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1004,7 +1023,7 @@ export default function ReportsPage() {
                             {screening.batch_number}
                           </TableCell>
                           <TableCell className="text-xs max-w-32 truncate">
-                            {screening.notes || "-"}
+                            {screening.screening_type || "-"}
                           </TableCell>
                         </TableRow>
                       ))}

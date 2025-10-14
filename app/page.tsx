@@ -42,7 +42,7 @@ const dashboardItems = [
     description: "Register a new child for the Swarnabindu program",
     icon: UserPlus,
     color: "green",
-    roles: ["admin", "volunteer", "inputter"],
+    roles: ["premium", "standard", "basic"],
   },
   {
     href: "/screening",
@@ -50,7 +50,7 @@ const dashboardItems = [
     description: "Administer Swarnabindu drops to registered children",
     icon: Droplets,
     color: "blue",
-    roles: ["admin", "volunteer"],
+    roles: ["premium", "standard"],
   },
   {
     href: "/selfregistered",
@@ -58,7 +58,7 @@ const dashboardItems = [
     description: "Search and view self-registered users",
     icon: Search,
     color: "green",
-    roles: ["admin", "volunteer"],
+    roles: ["premium", "standard"],
   },
   {
     href: "/reports",
@@ -66,7 +66,7 @@ const dashboardItems = [
     description: "Generate and view program reports",
     icon: BarChart3,
     color: "blue",
-    roles: ["admin", "inputter"],
+    roles: ["premium", "basic"],
   },
   {
     href: "/sync",
@@ -74,7 +74,7 @@ const dashboardItems = [
     description: "Synchronize offline data with server",
     icon: Database,
     color: "blue",
-    roles: ["admin", "volunteer", "inputter"],
+    roles: ["premium", "standard", "basic"],
   },
   {
     href: "#",
@@ -82,7 +82,7 @@ const dashboardItems = [
     description: "Emergency contacts and procedures",
     icon: Shield,
     color: "red",
-    roles: ["admin", "volunteer", "inputter"],
+    roles: ["premium", "standard", "basic"],
   },
 ];
 
@@ -107,7 +107,7 @@ export default function Home() {
   const { user } = useAuth();
 
   const filteredItems = dashboardItems.filter((item) =>
-    item.roles.includes(user?.role || "volunteer")
+    item.roles.includes(user?.role || "standard")
   );
 
   useEffect(() => {

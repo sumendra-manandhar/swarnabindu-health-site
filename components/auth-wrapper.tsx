@@ -18,7 +18,7 @@ export default function AuthWrapper({
   const isPublicRoute = publicRoutes.includes(pathname);
 
   // Determine mode based on pathname
-  const mode = pathname === "/selfregister" ? "self" : "volunteer";
+  const mode = pathname === "/selfregister" ? "self" : "standard";
 
   // For public routes, render without navbar or auth guard
   if (isPublicRoute) {

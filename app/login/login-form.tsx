@@ -86,7 +86,7 @@ export default function LoginForm() {
   };
 
   const demoAccounts = [
-    // { username: "admin", password: "admin123", assignedTo: "प्रशासक" },
+    // { username: "premium", password: "admin123", assignedTo: "प्रशासक" },
     {
       username: "volunteer1",
       password: "abcd1234",
