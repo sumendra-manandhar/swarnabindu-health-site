@@ -155,6 +155,14 @@ export function RegistrationStep1({
     if (!data.dateOfBirth) newErrors.dateOfBirth = " छान्नुहोस्";
     if (!data.palika) newErrors.palika = " छान्नुहोस्";
 
+    if (!data.contactNumber || data.contactNumber.length !== 10) {
+      setErrors((prev) => ({
+        ...prev,
+        contactNumber: "सम्पर्क नम्बर १० अंकको हुनुपर्छ।",
+      }));
+      return;
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -555,25 +563,31 @@ export function RegistrationStep1({
                 </span>
                 <Input
                   id="contactNumber"
+                  type="tel"
+                  inputMode="numeric"
+                  pattern="\d{10}"
+                  maxLength={10}
+                  minLength={10}
                   value={data.contactNumber}
-                  onChange={(e) =>
-                    onUpdate({
-                      contactNumber: e.target.value
-                        .replace(/\D/g, "")
-                        .slice(0, 10),
-                    })
-                  }
+                  onChange={(e) => {
+                    const onlyDigits = e.target.value
+                      .replace(/\D/g, "")
+                      .slice(0, 10);
+                    onUpdate({ contactNumber: onlyDigits });
+                  }}
                   placeholder="9800000000"
                   className="important text-sm px-2 py-1 rounded-l-none max-w-xs"
+                  required
                 />
               </div>
+
+              {errors.contactNumber && (
+                <p className="text-red-500 text-sm flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.contactNumber}
+                </p>
+              )}
             </div>
-            {errors.contactNumber && (
-              <p className="text-red-500 text-sm flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {errors.contactNumber}
-              </p>
-            )}
           </div>
         </div>
 
