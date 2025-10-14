@@ -44,6 +44,16 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       district: "बुटवल",
     },
   },
+  kathmanmdu: {
+    password: "kathmandu123",
+    user: {
+      id: "1",
+      name: "प्रशासक",
+      username: "Kathmandu Survey",
+      role: "basic",
+      district: "काठमांडौ",
+    },
+  },
   volunteer1: {
     password: "abcd1234", // Prem Tirwari: "Pre" + "ari"
     user: {
