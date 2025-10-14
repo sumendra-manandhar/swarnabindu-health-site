@@ -225,30 +225,26 @@ export default function Home() {
 
       if (isOnline) {
         try {
-          // Registrations based on district
-          // const { data: registrations } = await supabase
-          //   .from(registrationTable)
-          //   .select("id, gender");
-
-          const { data: registrations, error } = await supabase
+          // ✅ Total, Male, Female counts
+          const { count: total } = await supabase
             .from(registrationTable)
-            .select("id, gender")
-            .range(0, 9999); // fetch first 10,000 rows
+            .select("id", { count: "exact", head: true });
 
-          if (error) {
-            console.error("Error fetching registrations:", error);
-          }
+          const { count: male } = await supabase
+            .from(registrationTable)
+            .select("id", { count: "exact", head: true })
+            .eq("gender", "male");
 
-          if (registrations) {
-            onlineStats.totalPatients = registrations.length;
-            onlineStats.malePatients = registrations.filter(
-              (p) => p.gender === "male"
-            ).length;
-            onlineStats.femalePatients = registrations.filter(
-              (p) => p.gender === "female"
-            ).length;
-          }
+          const { count: female } = await supabase
+            .from(registrationTable)
+            .select("id", { count: "exact", head: true })
+            .eq("gender", "female");
 
+          onlineStats.totalPatients = total || 0;
+          onlineStats.malePatients = male || 0;
+          onlineStats.femalePatients = female || 0;
+
+          // ✅ Today's registrations
           const { data: todayRegs } = await supabase
             .from(registrationTable)
             .select("id")
@@ -257,26 +253,27 @@ export default function Home() {
 
           onlineStats.todayRegistrations = todayRegs ? todayRegs.length : 0;
 
-          // Screenings (same for all districts)
+          // ✅ Screenings
           const { data: screenings } = await supabase
             .from("screenings")
             .select("id");
-          if (screenings) onlineStats.totalScreenings = screenings.length;
 
-          // Self registrations (same table)
-          const { data: selfRegs } = await supabase
+          onlineStats.totalScreenings = screenings ? screenings.length : 0;
+
+          // ✅ Self registrations
+          const { count: totalSelf } = await supabase
             .from("self_registrations")
-            .select("id, gender");
+            .select("id", { count: "exact", head: true });
 
-          if (selfRegs) {
-            onlineStats.totalSelfPatients = selfRegs.length;
-            onlineStats.maleSelfPatients = selfRegs.filter(
-              (p) => p.gender === "male"
-            ).length;
-            onlineStats.femaleSelfPatients = selfRegs.filter(
-              (p) => p.gender === "female"
-            ).length;
-          }
+          const { count: maleSelf } = await supabase
+            .from("self_registrations")
+            .select("id", { count: "exact", head: true })
+            .eq("gender", "male");
+
+          const { count: femaleSelf } = await supabase
+            .from("self_registrations")
+            .select("id", { count: "exact", head: true })
+            .eq("gender", "female");
 
           const { data: todaySelfRegs } = await supabase
             .from("self_registrations")
@@ -284,6 +281,9 @@ export default function Home() {
             .gte("created_at", startOfDay)
             .lte("created_at", endOfDay);
 
+          onlineStats.totalSelfPatients = totalSelf || 0;
+          onlineStats.maleSelfPatients = maleSelf || 0;
+          onlineStats.femaleSelfPatients = femaleSelf || 0;
           onlineStats.todaySelfRegistrations = todaySelfRegs
             ? todaySelfRegs.length
             : 0;
