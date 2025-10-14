@@ -223,6 +223,7 @@ export function RegistrationSuccess({
   const districtTableMap: Record<string, string> = {
     चितवन: "chitwan_registrations",
     बुटवल: "butwal_registrations",
+    काठमांडौ: "kathmandu_registrations",
     देवदह: "devdaha_registrations",
     सैनीमाइना: "sainamaina_registrations",
     कञ्चन: "kanchan_registrations",
