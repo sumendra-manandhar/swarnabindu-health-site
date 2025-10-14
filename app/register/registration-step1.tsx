@@ -11,6 +11,7 @@ import { User, Calendar, AlertCircle, Zap } from "lucide-react";
 import {
   DANG_PALIKAS,
   CHITWAN_PALIKAS,
+  BUTWAL_PALIKAS,
   DISTRICTS_WITH_PALIKA,
 } from "@/lib/constants";
 import { NepaliDatePicker } from "@/components/nepali-date-picker";
@@ -276,6 +277,8 @@ export function RegistrationStep1({
             ? DANG_PALIKAS
             : userDistrict === "चितवन"
             ? CHITWAN_PALIKAS
+            : userDistrict === "रुपन्देही"
+            ? BUTWAL_PALIKAS
             : [];
 
         onUpdate({ palika: palikas[0] || "" });
@@ -291,6 +294,8 @@ export function RegistrationStep1({
         return DANG_PALIKAS;
       case "चितवन":
         return CHITWAN_PALIKAS;
+      case "बुटवल":
+        return BUTWAL_PALIKAS;
       default:
         return [];
     }

@@ -220,6 +220,18 @@ export function RegistrationSuccess({
 
   let saveInProgress = false;
 
+  const districtTableMap: Record<string, string> = {
+    चितवन: "chitwan_registrations",
+    बुटवल: "butwal_registrations",
+    देवदह: "devdaha_registrations",
+    सैनीमाइना: "sainamaina_registrations",
+    कञ्चन: "kanchan_registrations",
+    गैदहवा: "gaidahawa_registrations",
+    सिद्धोधान: "suddhodhan_registrations",
+    सियारी: "siyari_registrations",
+    तिलोत्तमा: "tilottama_registrations",
+  };
+
   const saveRegistration = async () => {
     if (saveInProgress) return;
     saveInProgress = true;
@@ -233,8 +245,6 @@ export function RegistrationSuccess({
         guardian_name: registrationData.guardianName,
         father_name: registrationData.fatherName,
         mother_name: registrationData.motherName,
-        // father_occupation: registrationData.fatherOccupation,
-        // mother_occupation: registrationData.motherOccupation,
         contact_number: registrationData.contactNumber,
         district: registrationData.district,
         palika: registrationData.palika,
@@ -256,11 +266,9 @@ export function RegistrationSuccess({
         created_at: new Date().toISOString(),
       };
 
-      // Determine table based on district
+      // Determine table dynamically using districtTableMap
       const targetTable =
-        registrationRecord.district === "चितवन"
-          ? "chitwan_registrations"
-          : "registrations";
+        districtTableMap[registrationRecord.district] || "registrations";
 
       console.log(`🌐 Saving to Supabase table: ${targetTable}`);
       console.log(registrationRecord);
@@ -271,11 +279,10 @@ export function RegistrationSuccess({
 
       if (error) {
         console.error("❌ Supabase insert error:", error);
-        throw error; // fallback to offline
+        throw error; // fallback to offline storage
       }
 
       console.log("✅ Registration saved to Supabase:", data);
-      return;
     } catch (error) {
       console.error(
         "⚠️ Error saving registration, saving offline instead:",

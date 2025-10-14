@@ -148,9 +148,31 @@ export default function Home() {
   // const limit = 50;
   // const [page, setPage] = useState(1);
 
+  // Map of districts to their corresponding registration tables
+  const districtTableMap = {
+    चितवन: "chitwan_registrations",
+    बुटवल: "butwal_registrations",
+    देवदह: "devdaha_registrations",
+    सैनीमाइना: "sainamaina_registrations",
+    कञ्चन: "kanchan_registrations",
+    गैदहवा: "gaidahawa_registrations",
+    सिद्धोधान: "suddhodhan_registrations",
+    सियारी: "siyari_registrations",
+    तिलोत्तमा: "tilottama_registrations",
+  } as const;
+
+  // Map of districts to their corresponding registration tables
+  const ScreeningTableMap = {
+    चितवन: "screening",
+    बुटवल: "screening_butwal",
+  } as const;
+
   const userDistrict = getUserDistrict() || "दाङ";
+
+  // Type assertion to fix TS error
   const registrationTable =
-    userDistrict === "चितवन" ? "chitwan_registrations" : "registrations";
+    districtTableMap[userDistrict as keyof typeof districtTableMap] ||
+    "registrations";
 
   // 🔹 Fetch only total count (run once)
   const fetchTotalCount = async () => {
@@ -171,7 +193,8 @@ export default function Home() {
     try {
       const userDistrict = getUserDistrict() || "दाङ"; // fallback
       const registrationTable =
-        userDistrict === "चितवन" ? "chitwan_registrations" : "registrations";
+        districtTableMap[userDistrict as keyof typeof districtTableMap] ||
+        "registrations";
 
       const offlineRegistrations = OfflineStorage.getOfflineRegistrations();
       const offlineScreenings = OfflineStorage.getOfflineScreenings();

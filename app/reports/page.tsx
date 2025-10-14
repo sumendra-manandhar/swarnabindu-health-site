@@ -177,9 +177,24 @@ export default function ReportsPage() {
   // const limit = 50;
   // const [page, setPage] = useState(1);
 
+  const districtTableMap = {
+    चितवन: "chitwan_registrations",
+    बुटवल: "butwal_registrations",
+    देवदह: "devdaha_registrations",
+    सैनीमाइना: "sainamaina_registrations",
+    कञ्चन: "kanchan_registrations",
+    गैदहवा: "gaidahawa_registrations",
+    सिद्धोधान: "suddhodhan_registrations",
+    सियारी: "siyari_registrations",
+    तिलोत्तमा: "tilottama_registrations",
+  } as const;
+
   const userDistrict = getUserDistrict() || "दाङ";
+
+  // Type assertion to fix TS error
   const registrationTable =
-    userDistrict === "चितवन" ? "chitwan_registrations" : "registrations";
+    districtTableMap[userDistrict as keyof typeof districtTableMap] ||
+    "registrations";
 
   // 🔹 Fetch only total count (run once)
   const fetchTotalCount = async () => {
