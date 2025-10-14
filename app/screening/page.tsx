@@ -72,7 +72,7 @@ export default function ScreeningPage() {
       if (!record || record.length === 0) {
         setErrorMsg("❌ No record found. Please check the input.");
       } else {
-        const patients = record.map((reg: any) => ({
+        const patients = record.map((reg: Patient) => ({
           id: reg.id,
           serial_no: reg.serial_no || "",
           childName: reg.childName || "",
@@ -86,10 +86,11 @@ export default function ScreeningPage() {
           district: reg.district || "",
           palika: reg.palika || "",
           ward: reg.ward || "",
-          date: reg.date || reg.created_at,
+          date: reg.date || '',
         }));
-
-        setFilteredPatients(patients);
+if (record && record.length > 0) {
+  setFilteredPatients(record);
+}
       }
     } catch (error) {
       console.error(error);

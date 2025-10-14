@@ -258,13 +258,17 @@ export default function NewScreeningPage() {
               "❌ Error loading dose history from Supabase:",
               error
             );
+
+
+
+
           } else if (data && data.length > 0) {
-            const onlineHistory = data.map((dose: any) => ({
+            const onlineHistory = data.map((dose: DoseHistory) => ({
               id: dose.id,
-              date: dose.created_at,
-              dose_amount: dose.dose_type || "", // use appropriate field
+              date: dose.date,
+              dose_amount: dose.dose_amount || "", // use appropriate field
               administered_by: dose.administered_by || "",
-              reaction: dose.child_reaction || "normal",
+              reaction: dose.reaction || "normal",
               batch_number: dose.batch_number || "",
               notes: dose.notes || "",
             }));
