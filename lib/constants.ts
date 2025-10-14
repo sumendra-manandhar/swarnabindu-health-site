@@ -37,3 +37,4 @@ export const BUTWAL_PALIKAS = [
   "सियारी गाउँपालिका",
   "तिलोत्तमा नगरपालिका",
 ];
+export const KATHMANU_PALIKAS = ["उप-महानगरपालिका", "नगरपालिका", "गाउँपालिका"];

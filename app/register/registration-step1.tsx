@@ -12,6 +12,7 @@ import {
   DANG_PALIKAS,
   CHITWAN_PALIKAS,
   BUTWAL_PALIKAS,
+  KATHMANU_PALIKAS,
   DISTRICTS_WITH_PALIKA,
 } from "@/lib/constants";
 import { NepaliDatePicker } from "@/components/nepali-date-picker";
@@ -279,6 +280,8 @@ export function RegistrationStep1({
             ? CHITWAN_PALIKAS
             : userDistrict === "रुपन्देही"
             ? BUTWAL_PALIKAS
+            : userDistrict === "काठमांडौ"
+            ? KATHMANU_PALIKAS
             : [];
 
         onUpdate({ palika: palikas[0] || "" });
@@ -296,6 +299,9 @@ export function RegistrationStep1({
         return CHITWAN_PALIKAS;
       case "बुटवल":
         return BUTWAL_PALIKAS;
+      case "काठमांडौ":
+        return KATHMANU_PALIKAS;
+
       default:
         return [];
     }
