@@ -131,6 +131,23 @@ export default function ReportsPage() {
   }, []);
 
   useEffect(() => {
+    const fetchTodayScreeningRegs = async () => {
+      const { data, error } = await supabase
+        .from("dose_logs") // 👈 table name
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching self regs:", error);
+      } else {
+        setScreenings(data || []);
+      }
+    };
+
+    fetchTodayScreeningRegs();
+  }, []);
+
+  useEffect(() => {
     filterData();
   }, [registrations, searchTerm, genderFilter, reactionFilter, districtFilter]);
 

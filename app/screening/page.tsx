@@ -40,6 +40,7 @@ interface Patient {
   palika: string;
   ward: string;
   date: string;
+  reg_id: string;
 }
 
 export default function ScreeningPage() {
@@ -73,6 +74,7 @@ export default function ScreeningPage() {
         setErrorMsg("❌ No record found. Please check the input.");
       } else {
         const patients = record.map((reg: Patient) => ({
+          reg_id: reg.reg_id,
           id: reg.id,
           serial_no: reg.serial_no || "",
           childName: reg.childName || "",
@@ -86,11 +88,10 @@ export default function ScreeningPage() {
           district: reg.district || "",
           palika: reg.palika || "",
           ward: reg.ward || "",
-          date: reg.date || '',
+          date: reg.date || "",
         }));
-if (record && record.length > 0) {
-  setFilteredPatients(record);
-}
+
+        setFilteredPatients(patients);
       }
     } catch (error) {
       console.error(error);
@@ -186,7 +187,7 @@ if (record && record.length > 0) {
                                 {patient.childName}
                               </h3>
                               <p className="text-sm text-muted-foreground">
-                                Serial: {patient.serial_no}
+                                Serial: {patient.reg_id}
                               </p>
                             </div>
                             <span className="px-2 py-1 bg-blue-100 text-blue-700 text-sm rounded">
@@ -231,19 +232,9 @@ if (record && record.length > 0) {
 
                         <div className="ml-6">
                           <Link
-                            href={`/screening/new?patientId=${
-                              patient.id
-                            }&patientName=${encodeURIComponent(
-                              patient.childName
-                            )}`}
+                            href={`/screening/new?patientId=${patient.reg_id}`}
                           >
-                            <Button
-                              size="lg"
-                              className="bg-blue-600 hover:bg-blue-700"
-                            >
-                              <Plus className="mr-2 h-5 w-5" />
-                              स्क्रिनिङ
-                            </Button>
+                            Add Screening
                           </Link>
                         </div>
                       </div>

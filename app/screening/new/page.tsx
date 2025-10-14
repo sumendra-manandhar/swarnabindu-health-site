@@ -76,7 +76,6 @@ interface ScreeningData {
   screening_date: string;
   screening_type: string;
   dose_amount: string;
-  dose_time: string;
   administered_by: string;
   child_reaction: string;
   weight: string;
@@ -92,6 +91,7 @@ export default function NewScreeningPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const patientId = searchParams.get("patientId");
+
   const patientName = searchParams.get("patientName");
 
   const [patient, setPatient] = useState<Patient | null>(null);
@@ -105,7 +105,6 @@ export default function NewScreeningPage() {
     screening_date: new Date().toISOString().split("T")[0],
     screening_type: "follow_up",
     dose_amount: "",
-    dose_time: "",
     administered_by: "",
     child_reaction: "normal",
     weight: "",
@@ -160,9 +159,10 @@ export default function NewScreeningPage() {
     try {
       // First try to find in offline storage
       const offlineRegistrations = OfflineStorage.getAllLocalRegistrations();
-      const offlinePatient = offlineRegistrations.find(
-        (reg) => reg.localId === patientId || reg.id === patientId
-      );
+      const offlinePatient =
+        offlineRegistrations.find(
+          (p) => p.id === patientId || p.reg_id === patientId
+        ) || null;
 
       if (offlinePatient) {
         setPatient({
@@ -184,7 +184,6 @@ export default function NewScreeningPage() {
       } else if (isOnline) {
         // Try to load from Supabase
 
-        debugger;
         try {
           const { data, error } = await supabase
             .from("registrations")
@@ -246,7 +245,6 @@ export default function NewScreeningPage() {
 
       if (isOnline) {
         try {
-          debugger;
           const { data, error } = await supabase
             .from("dose_logs")
             .select("*")
@@ -258,10 +256,6 @@ export default function NewScreeningPage() {
               "❌ Error loading dose history from Supabase:",
               error
             );
-
-
-
-
           } else if (data && data.length > 0) {
             const onlineHistory = data.map((dose: DoseHistory) => ({
               id: dose.id,
@@ -331,32 +325,22 @@ export default function NewScreeningPage() {
     e.preventDefault();
     setSaving(true);
 
+    debugger;
+
+    const screeningRecord = {
+      ...screeningData,
+      created_at: new Date().toISOString(),
+    };
+
     try {
-      const screeningRecord = {
-        ...screeningData,
-        created_at: new Date().toISOString(),
-      };
+      const { data, error } = await supabase
+        .from("dose_logs")
+        .insert([screeningRecord]);
 
-      // if (isOnline) {
-      //   // Try to save to Supabase first
-      //   try {
-      //     const { data, error } = await DatabaseService.createScreening(
-      //       screeningRecord
-      //     );
-      //     if (!error) {
-      //       alert("स्क्रिनिङ सफलतापूर्वक सेभ भयो!");
-      //       router.push("/screening");
-      //       return;
-      //     }
-      //   } catch (error) {
-      //     console.error("Error saving to database:", error);
-      //   }
-      // }
+      if (error) throw error;
 
-      // Save to offline storage as fallback
-      const offlineId = OfflineStorage.saveScreening(screeningRecord);
-      alert("स्क्रिनिङ स्थानीय रूपमा सेभ भयो! इन्टरनेट जडान भएपछि सिंक हुनेछ।");
-      router.push("/screening");
+      alert("✅ Screening saved successfully!");
+      console.log("Saved:", data);
     } catch (error) {
       console.error("Error saving screening:", error);
       alert("स्क्रिनिङ सेभ गर्न समस्या भयो। कृपया फेरि प्रयास गर्नुहोस्।");
@@ -742,18 +726,7 @@ export default function NewScreeningPage() {
                         </div>
                       </div>
                     </div>
-                    <div>
-                      <Label htmlFor="dose_time">समय *</Label>
-                      <Input
-                        id="dose_time"
-                        type="time"
-                        value={screeningData.dose_time}
-                        onChange={(e) =>
-                          handleInputChange("dose_time", e.target.value)
-                        }
-                        required
-                      />
-                    </div>
+
                     <div>
                       <Label htmlFor="administered_by">
                         सेवन गराउने व्यक्ति *
