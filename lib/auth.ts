@@ -44,7 +44,7 @@ const DEMO_USERS: Record<string, { password: string; user: User }> = {
       district: "बुटवल",
     },
   },
-  kathmanmdu: {
+  kathmandu: {
     password: "kathmandu123",
     user: {
       id: "1",
