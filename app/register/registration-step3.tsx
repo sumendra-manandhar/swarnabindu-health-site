@@ -55,6 +55,14 @@ export function RegistrationStep3({
     "डा. नेहा दूवाल",
   ];
 
+  const kathmanduadministrators = [
+    "डा. रबिन भुषाल ",
+    "डा. विमल शाह",
+    "डा. वशव्ँवदाम्बा कौण्डिन्नयायनी",
+    "डा. चन्द्रवली शाह",
+    " डा. पुजन अर्याल",
+  ];
+
   useCustomTabNavigation();
 
   const getUserDistrict = (): string | undefined => {
@@ -147,10 +155,16 @@ export function RegistrationStep3({
 
   const doseRecommendation = getDoseRecommendation();
 
-   // Dynamically pick administrator list
-  const administrators =
-    data.district === "बुटवल" ? butwaladministrators : commonAdministrators;
+  // Dynamically pick administrator list
+  // const administrators =
+  //   data.district === "बुटवल" ? butwaladministrators :  commonAdministrators;
 
+  const administrators =
+    data.district === "बुटवल"
+      ? butwaladministrators
+      : data.district === "काठमांडौ" || data.district === "Kathmandu"
+      ? kathmanduadministrators
+      : commonAdministrators;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -286,10 +300,12 @@ export function RegistrationStep3({
             <div>
               <Label>सेवन गराउने व्यक्ति *</Label>
               <div className="flex gap-2 mt-2 flex-wrap">
-                 {administrators.map((name) => (
+                {administrators.map((name) => (
                   <Button
                     key={name}
-                    variant={data.administeredBy === name ? "default" : "outline"}
+                    variant={
+                      data.administeredBy === name ? "default" : "outline"
+                    }
                     size="sm"
                     onClick={() => onUpdate({ administeredBy: name })}
                   >
