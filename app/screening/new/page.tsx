@@ -118,8 +118,9 @@ export default function NewScreeningPage() {
   });
 
   const commonAdministrators = [
-    "डा. सन्जु भुसाल ",
+    "डा. सुष्मा केसी",
     "डा. प्रथिभा सेन ",
+    "डा. सन्जु भुसाल ",
     "डा. सागर पोखरेल",
     "डा. प्रतिक्षा के.सी ",
   ];
