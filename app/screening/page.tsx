@@ -62,6 +62,32 @@ export default function ScreeningPage() {
     setErrorMsg("");
     setFilteredPatients([]);
 
+
+
+    // Step 1: Find patient
+    const { data: patient, error: patientError } = await supabase
+      .from("registrations")
+      .select("*")
+      .or(`reg_id.eq.${searchTerm},contact_number.eq.${searchTerm}`)
+      .single();
+
+    if (patientError) {
+      console.error("❌ Error fetching patient:", patientError);
+    } else if (patient) {
+      // Step 2: Use patient.id (UUID) to load dose logs
+      const { data: doseLogs, error: doseError } = await supabase
+        .from("dose_logs")
+        .select("*")
+        .eq("patient_id", patient.reg_id)
+        .order("created_at", { ascending: false });
+
+      if (doseError) {
+        console.error("❌ Error fetching dose logs:", doseError);
+      } else {
+        console.log("✅ Dose logs:", doseLogs);
+      }
+    }
+
     try {
       const { data: record, error } = await supabase
         .from("registrations")
@@ -253,6 +279,7 @@ export default function ScreeningPage() {
                           <Link
                             href={`/screening/new?patientId=${patient.reg_id}`}
                           >
+                            <p>{patient.reg_id}</p>
                             Add Screening
                           </Link>
                         </div>

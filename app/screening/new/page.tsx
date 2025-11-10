@@ -117,6 +117,13 @@ export default function NewScreeningPage() {
     next_dose_date: "",
   });
 
+  const commonAdministrators = [
+    "डा. सन्जु भुसाल ",
+    "डा. प्रथिभा सेन ",
+    "डा. सागर पोखरेल",
+    "डा. प्रतिक्षा के.सी ",
+  ];
+
   useEffect(() => {
     setIsOnline(navigator.onLine);
     if (patientId) {
@@ -177,8 +184,6 @@ export default function NewScreeningPage() {
             .limit(1)
             .single();
 
-          debugger;
-
           if (error) {
             console.error("Error loading patient from Supabase:", error);
           } else if (data) {
@@ -200,7 +205,6 @@ export default function NewScreeningPage() {
               date: data.date || data.created_at,
             });
 
-            debugger;
             const birth = new Date(data.date_of_birth);
             const today = new Date();
             const ageInMonths =
@@ -258,11 +262,19 @@ export default function NewScreeningPage() {
 
       if (isOnline) {
         try {
+          // const { data: doseLogs, error: doseError } = await supabase
+          //   .from("dose_logs")
+          //   .select("*")
+          //   .eq("patient_id", patient.reg_id)
+          //   .order("created_at", { ascending: false });
+
           const { data, error } = await supabase
             .from("dose_logs")
             .select("*")
-            .eq("registration_id", patientId)
+            .eq("patient_id", patientId)
             .order("created_at", { ascending: false });
+
+          debugger;
 
           if (error) {
             console.error(
@@ -279,6 +291,7 @@ export default function NewScreeningPage() {
               batch_number: dose.batch_number || "",
               notes: dose.notes || "",
             }));
+
             mergedHistory = [...mergedHistory, ...onlineHistory];
           }
         } catch (err) {
@@ -292,6 +305,8 @@ export default function NewScreeningPage() {
       console.error("Error loading dose history:", error);
     }
   };
+
+  console.log(doseHistory);
 
   const calculateAgeInMonths = (birthDate: string): number => {
     const birth = new Date(birthDate);
@@ -348,8 +363,6 @@ export default function NewScreeningPage() {
     e.preventDefault();
     setSaving(true);
 
-    debugger;
-
     const screeningRecord = {
       ...screeningData,
       created_at: new Date().toISOString(),
@@ -363,6 +376,7 @@ export default function NewScreeningPage() {
       if (error) throw error;
 
       alert("✅ Screening saved successfully!");
+      router.push("/screening");
       console.log("Saved:", data);
     } catch (error) {
       console.error("Error saving screening:", error);
@@ -788,6 +802,28 @@ export default function NewScreeningPage() {
                       <Label htmlFor="administered_by">
                         सेवन गराउने व्यक्ति *
                       </Label>
+                      <select
+                        id="administered_by"
+                        value={
+                          screeningData.administered_by ||
+                          commonAdministrators[0]
+                        }
+                        onChange={(e) =>
+                          handleInputChange("administered_by", e.target.value)
+                        }
+                        className="w-full border rounded-md p-2"
+                        required
+                      >
+                        {commonAdministrators.map((name) => (
+                          <option key={name} value={name}>
+                            {name}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* <Label htmlFor="administered_by">
+                        सेवन गराउने व्यक्ति *
+                      </Label>
                       <Input
                         id="administered_by"
                         value={screeningData.administered_by}
@@ -796,7 +832,7 @@ export default function NewScreeningPage() {
                         }
                         placeholder="डाक्टर/नर्सको नाम"
                         required
-                      />
+                      /> */}
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
