@@ -62,8 +62,6 @@ export default function ScreeningPage() {
     setErrorMsg("");
     setFilteredPatients([]);
 
-
-
     // Step 1: Find patient
     const { data: patient, error: patientError } = await supabase
       .from("registrations")
@@ -179,7 +177,7 @@ export default function ScreeningPage() {
                     let query = searchTerm;
 
                     if (/^\d+$/.test(searchTerm) && searchTerm.length <= 6) {
-                      query = `REG-${searchTerm.padStart(4, "0")}DNG`;
+                      query = `LDT-${searchTerm.padStart(4, "0")}`;
                       setSearchTerm(query); // update input display
                     }
 
@@ -191,8 +189,8 @@ export default function ScreeningPage() {
               {/* Hint below the input */}
               <p className="text-xs text-muted-foreground mt-1">
                 Tip: You can type only the number and press <kbd>Tab</kbd> to
-                auto-fill the full REG ID (REG-XXXXDNG). You can also search
-                using the contact number.
+                auto-fill the full REG ID (LDT-XXXX). You can also search using
+                the contact number.
               </p>
             </div>
             <Button onClick={() => handleSearch()} disabled={loading}>
