@@ -45,8 +45,10 @@ import {
   Droplets,
 } from "lucide-react";
 import Link from "next/link";
-import { OfflineStorage } from "@/lib/offline-storage";
-import { supabase } from "@/lib/supabase";
+// import { OfflineStorage } from "@/lib/offline-storage"; // Assuming these are unused or globally defined
+import { supabase } from "@/lib/supabase"; // Make sure this path is correct
+
+// --- INTERFACE DEFINITIONS ---
 
 interface RegistrationRecord {
   id: string;
@@ -95,26 +97,78 @@ interface SelfRegistration {
   allergies: string;
   previous_medications: string;
   vaccination_status: string;
-  weight: string; // changed from number to string (since your new data has it as "16")
+  weight: string;
   height: string;
   age: string;
   unique_id: string;
 }
 
+// --- UTILITIES & MAPPING ---
+
+const districtTableMap = {
+  चितवन: "chitwan_registrations",
+  बुटवल: "butwal_registrations",
+  काठमांडौ: "kathmandu_registrations",
+  देवदह: "devdaha_registrations",
+  सैनीमाइना: "sainamaina_registrations",
+  कञ्चन: "kanchan_registrations",
+  गैदहवा: "gaidahawa_registrations",
+  सिद्धोधान: "suddhodhan_registrations",
+  सियारी: "siyari_registrations",
+  तिलोत्तमा: "tilottama_registrations",
+} as const;
+
+const getUserDistrict = (): string | undefined => {
+  if (typeof window === "undefined") return undefined;
+  const storedUser = localStorage.getItem("auth_user");
+  if (!storedUser) return undefined;
+
+  try {
+    const user = JSON.parse(storedUser) as { district?: string };
+    return user.district;
+  } catch {
+    return undefined;
+  }
+};
+
+// --- MAIN COMPONENT ---
+
 export default function ReportsPage() {
   const [registrations, setRegistrations] = useState<RegistrationRecord[]>([]);
   const [screenings, setScreenings] = useState<ScreeningRecord[]>([]);
+  const [totalScreeningsCount, setTotalScreeningCount] = useState<
+    ScreeningRecord[]
+  >([]);
   const [filteredData, setFilteredData] = useState<RegistrationRecord[]>([]);
+  const [selfRegistrations, setSelfRegistrations] = useState<
+    SelfRegistration[]
+  >([]);
+
+  // Filters and UI State
   const [searchTerm, setSearchTerm] = useState("");
   const [genderFilter, setGenderFilter] = useState("all");
   const [reactionFilter, setReactionFilter] = useState("all");
   const [districtFilter, setDistrictFilter] = useState("all");
   const [loading, setLoading] = useState(true);
-  const [selfRegistrations, setSelfRegistrations] = useState<
-    SelfRegistration[]
-  >([]);
-
   const [role, setRole] = useState<string | null>(null);
+
+  // Pagination numbers
+  const totalRecords = filteredData.length;
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Pagination State
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalDoseCount, setTotalDoseCount] = useState(0);
+  const limit = 100; // rows per page
+
+  const userDistrict = getUserDistrict() || "दाङ";
+  const registrationTable =
+    districtTableMap[userDistrict as keyof typeof districtTableMap] ||
+    "registrations";
+
+  // --- DATA FETCHING & LIFECYCLE ---
 
   useEffect(() => {
     const storedUser = localStorage.getItem("auth_user");
@@ -124,92 +178,7 @@ export default function ReportsPage() {
     }
   }, []);
 
-  useEffect(() => {
-    const fetchSelfRegs = async () => {
-      const { data, error } = await supabase
-        .from("self_registrations") // 👈 table name
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching self regs:", error);
-      } else {
-        setSelfRegistrations(data || []);
-      }
-    };
-
-    fetchSelfRegs();
-  }, []);
-
-  useEffect(() => {
-    const fetchTodayScreeningRegs = async () => {
-      const { data, error } = await supabase
-        .from("dose_logs") // 👈 table name
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching self regs:", error);
-      } else {
-        setScreenings(data || []);
-      }
-    };
-
-    fetchTodayScreeningRegs();
-  }, []);
-
-  useEffect(() => {
-    filterData();
-  }, [registrations, searchTerm, genderFilter, reactionFilter, districtFilter]);
-
-  const getUserDistrict = (): string | undefined => {
-    if (typeof window === "undefined") return undefined;
-    const storedUser = localStorage.getItem("auth_user");
-    // "{"id":"1","name":"प्रशासक","username":"Dang Survey","role":"premium","district":"दाङ"}"
-    if (!storedUser) return undefined;
-
-    try {
-      const user = JSON.parse(storedUser) as { district?: string };
-      return user.district;
-    } catch {
-      return undefined;
-    }
-  };
-
-  const [page, setPage] = useState(1);
-  // const [totalCount, setTotalCount] = useState(0);
-  const limit = 100; // rows per page
-
-  // total count state
-  const [totalCount, setTotalCount] = useState(0);
-
-  // const [registrations, setRegistrations] = useState<any[]>([]);
-  // const [totalCount, setTotalCount] = useState(0);
-  // const [loading, setLoading] = useState(false);
-  // const limit = 50;
-  // const [page, setPage] = useState(1);
-
-  const districtTableMap = {
-    चितवन: "chitwan_registrations",
-    बुटवल: "butwal_registrations",
-    काठमांडौ: "kathmandu_registrations",
-    देवदह: "devdaha_registrations",
-    सैनीमाइना: "sainamaina_registrations",
-    कञ्चन: "kanchan_registrations",
-    गैदहवा: "gaidahawa_registrations",
-    सिद्धोधान: "suddhodhan_registrations",
-    सियारी: "siyari_registrations",
-    तिलोत्तमा: "tilottama_registrations",
-  } as const;
-
-  const userDistrict = getUserDistrict() || "दाङ";
-
-  // Type assertion to fix TS error
-  const registrationTable =
-    districtTableMap[userDistrict as keyof typeof districtTableMap] ||
-    "registrations";
-
-  // 🔹 Fetch only total count (run once)
+  // Fetch Total Count
   const fetchTotalCount = async () => {
     const { count, error } = await supabase
       .from(registrationTable)
@@ -222,22 +191,24 @@ export default function ReportsPage() {
     setTotalCount(count || 0);
   };
 
-  // 🔹 Fetch paginated rows (runs whenever `page` changes)
+  // Fetch Paginated Registrations
   const fetchRegistrations = async (pageNum: number) => {
     setLoading(true);
     try {
       const from = (pageNum - 1) * limit;
       const to = from + limit - 1;
 
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from(registrationTable)
-        .select("*")
+        .select("*", { count: "exact" })
         .order("created_at", { ascending: false })
-        .range(0, 3500);
+        .range(from, to);
 
       if (error) throw error;
 
-      const mappedServerData = (data || []).map((record) => ({
+      if (count !== null) setTotalCount(count);
+
+      const mappedServerData = (data || []).map((record: any) => ({
         id: record.id,
         childName: record.childName || record.child_name || record.name || "",
         dateOfBirth: record.dateOfBirth || record.date_of_birth || "",
@@ -275,21 +246,89 @@ export default function ReportsPage() {
     }
   };
 
-  // 🔹 On mount → get total count once
+  const fetchTotalDose = async (pageNum: number) => {
+    setLoading(true);
+    try {
+      const from = (pageNum - 1) * limit;
+      const to = from + limit - 1;
+
+      const { data, error, count } = await supabase
+        .from("dose_logs")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+
+      if (count !== null) setTotalDoseCount(count);
+
+      const mappedServerData = data;
+
+      setScreenings(mappedServerData);
+    } catch (err) {
+      console.error("Error fetching registrations:", err);
+      setScreenings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch Self Registrations and Screenings
   useEffect(() => {
-    fetchTotalCount();
-    fetchRegistrations(page);
+    const fetchSelfRegs = async () => {
+      const { data, error } = await supabase
+        .from("self_registrations")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) console.error("Error fetching self regs:", error);
+      else setSelfRegistrations(data || []);
+    };
+
+    const fetchTodayScreeningRegs = async () => {
+      const { count, data, error } = await supabase
+        .from("dose_logs")
+
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false });
+      if (error) console.error("Error fetching screening logs:", error);
+      else setScreenings(data || []);
+    };
+
+    // Fetch Total Count
+
+    fetchSelfRegs();
+    fetchTodayScreeningRegs();
   }, []);
 
-  // 🔹 On page change → only fetch registrations
+  // Initial load and page change effects
   useEffect(() => {
+    // 1. Fetch total count once
+    fetchTotalCount();
+    // 2. Fetch the first page (or current page) of data
     fetchRegistrations(page);
-  }, [page]);
+  }, [registrationTable]); // Refetch when district/table changes
+
+  useEffect(() => {
+    // Fetch new data when page changes
+    fetchRegistrations(page);
+  }, [page]); // Refetch when page changes
+  useEffect(() => {
+    // Fetch new data when page changes
+    fetchTotalDose(page);
+  }, [page]); // Refetch when page changes
+
+  // Filtering effect
+  useEffect(() => {
+    // Filter the *current page's* data
+    filterData();
+  }, [registrations, searchTerm, genderFilter, reactionFilter, districtFilter]);
+
+  // --- DATA PROCESSING & FILTERS ---
 
   const filterData = () => {
     let filtered = registrations;
 
-    // Search filter
+    // Apply all filters to the currently loaded 100 records
     if (searchTerm) {
       filtered = filtered.filter(
         (record) =>
@@ -301,19 +340,16 @@ export default function ReportsPage() {
       );
     }
 
-    // Gender filter
     if (genderFilter !== "all") {
       filtered = filtered.filter((record) => record.gender === genderFilter);
     }
 
-    // District filter
     if (districtFilter !== "all") {
       filtered = filtered.filter(
         (record) => record.district === districtFilter
       );
     }
 
-    // Reaction filter
     if (reactionFilter !== "all") {
       filtered = filtered.filter(
         (record) => record.child_reaction === reactionFilter
@@ -323,65 +359,396 @@ export default function ReportsPage() {
     setFilteredData(filtered);
   };
 
-  const exportToCSV = () => {
-    const headers = [
-      "सिरियल नम्बर",
-      "बालकको नाम",
-      "जन्म मिति",
-      "उमेर",
-      "लिङ्ग",
-      "अभिभावक",
-      "सम्पर्क",
-      "जिल्ला",
-      "पालिका",
-      "वडा",
-      "मात्रा",
-      "समय",
-      "सेवन गराउने",
-      "प्रतिक्रिया",
-      "तौल",
-      "खोप स्थिति",
-      "दर्ता मिति",
-    ];
+  // --- EXPORT FUNCTION ---
 
-    const csvContent = [
-      headers.join(","),
-      ...filteredData.map((record) =>
-        [
-          record.serial_no,
-          record.childName,
-          record.dateOfBirth,
-          record.age,
-          record.gender === "male" ? "पुरुष" : "महिला",
-          record.guardianName,
-          record.contactNumber,
-          record.district,
-          record.palika,
-          record.ward,
-          `${record.dose_amount} थोपा`,
-          record.dose_time,
-          record.administered_by,
-          record.child_reaction === "normal" ? "सामान्य" : "प्रतिक्रिया",
-          `${record.weight} कि.ग्रा.`,
-          record.vaccination_status,
-          record.date,
-        ].join(",")
-      ),
-    ].join("\n");
+  // const exportToCSV = () => {
+  //   const headers = [
+  //     "सिरियल नम्बर",
+  //     "बालकको नाम",
+  //     "जन्म मिति",
+  //     "उमेर",
+  //     "लिङ्ग",
+  //     "अभिभावक",
+  //     "सम्पर्क",
+  //     "जिल्ला",
+  //     "पालिका",
+  //     "वडा",
+  //     "मात्रा",
+  //     "समय",
+  //     "सेवन गराउने",
+  //     "प्रतिक्रिया",
+  //     "तौल",
+  //     "खोप स्थिति",
+  //     "दर्ता मिति",
+  //   ];
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `swarnabindu-report-${new Date().toISOString().split("T")[0]}.csv`
-    );
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  //   debugger;
+
+  //   const csvContent = [
+  //     headers.join(","),
+  //     ...filteredData.map((record) =>
+  //       [
+  //         record.serial_no,
+  //         record.childName,
+  //         record.dateOfBirth,
+  //         record.age,
+  //         record.gender === "male" ? "पुरुष" : "महिला",
+  //         record.guardianName,
+  //         record.contactNumber,
+  //         record.district,
+  //         record.palika,
+  //         record.ward,
+  //         `${record.dose_amount} थोपा`,
+  //         record.dose_time,
+  //         record.administered_by,
+  //         record.child_reaction === "normal" ? "सामान्य" : "प्रतिक्रिया",
+  //         `${record.weight} कि.ग्रा.`,
+  //         record.vaccination_status,
+  //         record.date,
+  //       ].join(",")
+  //     ),
+  //   ].join("\n");
+
+  //   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  //   const link = document.createElement("a");
+  //   const url = URL.createObjectURL(blob);
+  //   link.setAttribute("href", url);
+  //   link.setAttribute(
+  //     "download",
+  //     `swarnabindu-report-${new Date().toISOString().split("T")[0]}.csv`
+  //   );
+  //   link.style.visibility = "hidden";
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // };
+
+  // Utility function to map raw server data (copied from previous solution)
+  // const mapServerData = (data: any[]): RegistrationRecord[] => {
+  //   // ... (map logic remains the same)
+  //   return (data || []).map((record: any) => ({
+  //     id: record.id,
+  //     childName: record.childName || record.child_name || record.name || "",
+  //     dateOfBirth: record.dateOfBirth || record.date_of_birth || "",
+  //     age: record.age || "",
+  //     gender: record.gender || "",
+  //     guardianName:
+  //       record.guardianName ||
+  //       record.guardian_name ||
+  //       record.father_name ||
+  //       record.mother_name ||
+  //       "",
+  //     contactNumber: record.contactNumber || record.contact_number || "",
+  //     dose_amount: record.dose_amount || record.doseAmount || "2",
+  //     dose_time: record.dose_time || new Date().toLocaleTimeString("ne-NP"),
+  //     administered_by: record.administered_by || "स्वास्थ्यकर्मी",
+  //     child_reaction: record.child_reaction || "normal",
+  //     weight: record.weight || 0,
+  //     vaccination_status: record.vaccination_status || "completed",
+  //     date:
+  //       record.date ||
+  //       record.created_at ||
+  //       new Date().toLocaleDateString("ne-NP"),
+  //     serial_no: record.serial_no || record.serialNo || `SB${record.id}`,
+  //     district: record.district || userDistrict,
+  //     palika: record.palika || "",
+  //     ward: record.ward || "",
+  //   }));
+  // };
+  const mapServerData = (data: any[]): any[] => {
+    return (data || []).map((record: any) => ({
+      // your existing mapping stays exactly the same
+      id: record.id,
+      childName: record.childName || record.child_name || record.name || "",
+      dateOfBirth: record.dateOfBirth || record.date_of_birth || "",
+      age: record.age || "",
+      gender: record.gender || "",
+      guardianName:
+        record.guardianName ||
+        record.guardian_name ||
+        record.father_name ||
+        record.mother_name ||
+        "",
+      contactNumber: record.contactNumber || record.contact_number || "",
+      dose_amount: record.dose_amount || record.doseAmount || "2",
+      dose_time: record.dose_time || new Date().toLocaleTimeString("ne-NP"),
+      administered_by: record.administered_by || "स्वास्थ्यकर्मी",
+      child_reaction: record.child_reaction || "normal",
+      weight: record.weight || 0,
+      vaccination_status: record.vaccination_status || "completed",
+      date:
+        record.date ||
+        record.created_at ||
+        new Date().toLocaleDateString("ne-NP"),
+      serial_no: record.serial_no || record.serialNo || `SB${record.id}`,
+      district: record.district || userDistrict,
+      palika: record.palika || "",
+      ward: record.ward || "",
+    }));
   };
+
+  // Add this line to your useState declarations in ReportsPage()
+  const [exporting, setExporting] = useState(false);
+
+  // **This is the core fix for exporting all data**
+
+  const fetchAllRows = async () => {
+    const pageSize = 1000; // Supabase max limit
+    let allRows: any[] = [];
+    let from = 0;
+    let to = pageSize - 1;
+
+    while (true) {
+      const { data, error } = await supabase
+        .from(registrationTable)
+        .select("*")
+        .range(from, to)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      allRows = allRows.concat(data);
+
+      if (data.length < pageSize) break; // last page reached
+
+      from += pageSize;
+      to += pageSize;
+    }
+
+    return allRows;
+  };
+
+  // **This is the core fix for exporting all data**
+  const exportAllData = async () => {
+    registrations.length;
+    setExporting(true);
+    try {
+      // 1. Fetch ALL data (without range limit)
+      const data = await fetchAllRows();
+
+      // 2. Map the entire dataset to the expected format
+      let dataToExport = mapServerData(data);
+
+      // 3. Re-apply current filters to the full dataset
+      if (searchTerm) {
+        dataToExport = dataToExport.filter(
+          (record) =>
+            record.childName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            record.guardianName
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            record.serial_no.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+      if (genderFilter !== "all") {
+        dataToExport = dataToExport.filter(
+          (record) => record.gender === genderFilter
+        );
+      }
+      if (districtFilter !== "all") {
+        dataToExport = dataToExport.filter(
+          (record) => record.district === districtFilter
+        );
+      }
+      if (reactionFilter !== "all") {
+        dataToExport = dataToExport.filter(
+          (record) => record.child_reaction === reactionFilter
+        );
+      }
+
+      // 4. Generate CSV content
+      const headers = [
+        "क्रम संख्या", // NEW HEADER ADDED HERE
+        "सिरियल नम्बर",
+        "बालकको नाम",
+        "जन्म मिति",
+        "उमेर",
+        "लिङ्ग",
+        "अभिभावक",
+        "सम्पर्क",
+        "जिल्ला",
+        "पालिका",
+        "वडा",
+        "मात्रा",
+        "समय",
+        "सेवन गराउने",
+        "प्रतिक्रिया",
+        "तौल",
+        "खोप स्थिति",
+        "दर्ता मिति",
+      ];
+
+      debugger;
+
+      const csvContent = [
+        headers.join(","),
+        // Use map with index to generate the sequential ID
+        ...dataToExport.map((record, index) =>
+          [
+            // ----------------------------------------------------
+            index + 1, // <--- THE NEW SEQUENTIAL ID (starts at 1)
+            // ----------------------------------------------------
+            record.serial_no,
+            record.childName,
+            record.dateOfBirth,
+            record.age,
+            record.gender === "male" ? "पुरुष" : "महिला",
+            record.guardianName,
+            record.contactNumber,
+            record.district,
+            record.palika,
+            record.ward,
+            `${record.dose_amount} थोपा`,
+            record.dose_time,
+            record.administered_by,
+            record.child_reaction === "normal" ? "सामान्य" : "प्रतिक्रिया",
+            `${record.weight} कि.ग्रा.`,
+            record.vaccination_status,
+            record.date,
+          ]
+            .map(
+              (value) =>
+                // Wrap values in double quotes and escape internal quotes for CSV safety
+                `"${String(value).replace(/"/g, '""')}"`
+            )
+            .join(",")
+        ),
+      ].join("\n");
+
+      // 5. Trigger Download
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `swarnabindu-report-FULL-${new Date().toISOString().split("T")[0]}.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Error exporting all data:", err);
+      alert("Error exporting data. Please check your network or console.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // **This is the core fix for exporting all data**
+
+  const fetchAllDoseRows = async () => {
+    const pageSize = 1000; // Supabase max limit
+    let allRows: any[] = [];
+    let from = 0;
+    let to = pageSize - 1;
+    debugger;
+
+    while (true) {
+      const { data, error } = await supabase
+        .from("dose_logs")
+        .select("*")
+        .range(from, to)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      allRows = allRows.concat(data);
+
+      if (data.length < pageSize) break; // last page reached
+
+      from += pageSize;
+      to += pageSize;
+    }
+
+    return allRows;
+  };
+
+  const exportAllDoseData = async () => {
+    setExporting(true);
+    try {
+      // 1. Fetch ALL data (without range limit)
+      const data = await fetchAllDoseRows();
+
+      // 2. Map the entire dataset to the expected format
+      let dataToExport = mapServerData(data);
+
+      // 4. Generate CSV content
+      const headers = [
+        "क्रम संख्या",
+        "रजिस्ट्रेशन आइडी",
+        "बालकको आइडी",
+        "स्क्रिनिङ्ग प्रकार",
+        "स्क्रिनिङ मिति",
+        "अर्को मात्रा मिति",
+        "सेवन गराउने",
+        "ब्याच नम्बर",
+        "मात्रा (थोपा)",
+        "प्रतिक्रिया",
+        "तौल (कि.ग्रा.)",
+        "उचाइ (से.मि.)",
+        "MUAC (से.मि.)",
+        "तापक्रम",
+        "टिप्पणी",
+        "दर्ता मिति",
+      ];
+
+      const csvContent = [
+        headers.join(","),
+        // Use map with index to generate the sequential ID
+        ...dataToExport.map((record, index) =>
+          [
+            index + 1, // क्रम संख्या (1,2,3,...)
+            record.reg_id ?? "", // रजिस्ट्रेशन आइडी
+            record.patient_id ?? "", // बालकको आइडी
+            record.screening_type === "follow_up"
+              ? "पुनः अनुगमन"
+              : "प्रारम्भिक", // स्क्रिनिङ प्रकार
+            record.screening_date ?? "", // स्क्रिनिङ मिति
+            record.next_dose_date ?? "", // अर्को मात्रा मिति
+            record.administered_by ?? "", // सेवन गराउने
+            record.batch_number ?? "", // ब्याच नम्बर
+            record.dose_amount ? `${record.dose_amount} थोपा` : "", // मात्रा
+            record.child_reaction === "normal" ? "सामान्य" : "प्रतिक्रिया", // प्रतिक्रिया
+            record.weight ? `${record.weight} कि.ग्रा.` : "", // तौल
+            record.height ? `${record.height} से.मि.` : "", // उचाइ
+            record.muac ? `${record.muac} से.मि.` : "", // MUAC
+            record.temperature ? `${record.temperature} °C` : "", // तापक्रम
+            record.notes ?? "", // टिप्पणी
+            record.created_at ?? "", // दर्ता मिति
+          ]
+            .map(
+              (value) =>
+                // Wrap values in double quotes and escape internal quotes for CSV safety
+                `"${String(value).replace(/"/g, '""')}"`
+            )
+            .join(",")
+        ),
+      ].join("\n");
+
+      // 5. Trigger Download
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `swarnabindu-report-FULL-${new Date().toISOString().split("T")[0]}.csv`
+      );
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Error exporting all data:", err);
+      alert("Error exporting data. Please check your network or console.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // --- STATISTICS AND CHART DATA GENERATION ---
 
   const getStatistics = () => {
     const total = registrations.length;
@@ -411,19 +778,24 @@ export default function ReportsPage() {
       ).length,
     };
 
-    // Registrations by district
+    // Registrations by district (using palika for better granularity in local view)
     const districtStats = registrations.reduce((acc, reg) => {
       acc[reg.palika] = (acc[reg.palika] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-    // Monthly trend
+    // Monthly trend (Note: This is only based on the currently loaded page's data)
     const monthlyData = registrations.reduce((acc, reg) => {
-      const month = new Date(reg.date).toLocaleDateString("ne-NP", {
-        year: "numeric",
-        month: "short",
-      });
-      acc[month] = (acc[month] || 0) + 1;
+      // Assuming 'date' is a parsable date string
+      try {
+        const month = new Date(reg.date).toLocaleDateString("ne-NP", {
+          year: "numeric",
+          month: "short",
+        });
+        acc[month] = (acc[month] || 0) + 1;
+      } catch (e) {
+        // Ignore records with invalid dates
+      }
       return acc;
     }, {} as Record<string, number>);
 
@@ -473,7 +845,14 @@ export default function ReportsPage() {
     ...new Set(registrations.map((r) => r.district)),
   ].filter(Boolean);
 
-  if (loading) {
+  const totalPages = Math.ceil(totalCount / limit);
+
+  const [activeTab, setActiveTab] = useState("registrations");
+
+  // --- LOADING STATE ---
+
+  if (loading && totalCount === 0) {
+    // Show loading only on initial fetch
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-96">
@@ -486,7 +865,10 @@ export default function ReportsPage() {
     );
   }
 
-  const totalPages = Math.ceil(totalCount / limit);
+  // --- RENDER ---
+
+  const start = (currentPage - 1) * limit + 1;
+  const end = Math.min(currentPage * limit, totalCount);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -506,11 +888,6 @@ export default function ReportsPage() {
               <Button variant="outline">फिर्ता</Button>
             </Link>
           </div>
-
-          {/* <p className="text-sm text-muted-foreground">
-            Total entries: {totalCount}
-            दर्ता सूची (Filtered: {filteredData.length} / Total: {totalCount})
-          </p> */}
 
           {/* Enhanced Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
@@ -539,7 +916,7 @@ export default function ReportsPage() {
                       कुल स्क्रिनिङ
                     </p>
                     <p className="text-2xl font-bold text-purple-900">
-                      {stats.totalScreenings}
+                      {totalDoseCount}
                     </p>
                   </div>
                 </div>
@@ -602,7 +979,22 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <Tabs defaultValue="registrations" className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={(tab) => {
+            setActiveTab(tab);
+            setLoading(true);
+
+            if (tab === "registrations") {
+              fetchRegistrations(page); // Only fetch when tab is clicked
+            }
+
+            if (tab === "screenings") {
+              fetchTotalDose(page); // Only fetch when tab is clicked
+            }
+          }}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="registrations">दर्ता सूची</TabsTrigger>
             <TabsTrigger value="overview">सिंहावलोकन</TabsTrigger>
@@ -618,10 +1010,10 @@ export default function ReportsPage() {
             )}
           </TabsList>
 
+          {/* OVERVIEW CONTENT */}
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Gender Distribution */}
-
               <Card>
                 <CardHeader>
                   <CardTitle>लिङ्ग वितरण</CardTitle>
@@ -686,39 +1078,10 @@ export default function ReportsPage() {
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-
-              {/* Reaction Analysis */}
-              {/* <Card>
-                <CardHeader>
-                  <CardTitle>प्रतिक्रिया विश्लेषण</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={reactionData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        // label={({ name, percent }) =>
-                        //   `${name} ${(percent * 100).toFixed(0)}%`
-                        // }
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {reactionData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card> */}
             </div>
           </TabsContent>
 
+          {/* REGISTRATIONS CONTENT (with Pagination) */}
           <TabsContent value="registrations" className="space-y-6">
             {/* Enhanced Filters */}
             <Card>
@@ -774,9 +1137,17 @@ export default function ReportsPage() {
                       <SelectItem value="adverse">प्रतिकूल</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button onClick={exportToCSV} className="w-full">
-                    <Download className="h-4 w-4 mr-2" />
-                    CSV निर्यात
+                  <Button
+                    onClick={exportAllData}
+                    className="w-full"
+                    disabled={exporting} // Use the new state here
+                  >
+                    <Download
+                      className={`h-4 w-4 mr-2 ${
+                        exporting ? "animate-spin" : ""
+                      }`}
+                    />
+                    {exporting ? " CSV निर्यात" : " CSV निर्यात"}
                   </Button>
                 </div>
               </CardContent>
@@ -784,15 +1155,42 @@ export default function ReportsPage() {
 
             {/* Registrations Table */}
             <Card>
+              {/* PAGINATION CONTROLS */}
+
               <CardHeader>
-                <CardTitle>दर्ता सूची ({totalCount})</CardTitle>
+                <CardTitle>
+                  <div className="flex gap-2 items-center mt-4">
+                    दर्ता सूची ({end} / {totalCount})
+                    <Button
+                      onClick={() => {
+                        setCurrentPage(currentPage - 1);
+                        fetchRegistrations(currentPage - 1);
+                      }}
+                      disabled={currentPage === 1 || loading}
+                    >
+                      Previous
+                    </Button>
+                    {/* <p className="text-sm text-gray-700">
+                  Page **{page}** of **{totalPages}** (showing {end} /{" "}
+                  {totalCount} total entries)
+                </p> */}
+                    <Button
+                      disabled={end >= totalCount}
+                      onClick={() => {
+                        setCurrentPage(currentPage + 1);
+                        fetchRegistrations(currentPage + 1);
+                      }}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        {/* <TableHead>सिरियल नम्बर</TableHead> */}
                         <TableHead>बालकको नाम</TableHead>
                         <TableHead>उमेर</TableHead>
                         <TableHead>लिङ्ग</TableHead>
@@ -809,9 +1207,6 @@ export default function ReportsPage() {
                     <TableBody>
                       {filteredData.map((record) => (
                         <TableRow key={record.id}>
-                          {/* <TableCell className="font-medium">
-                            {record.serial_no}
-                          </TableCell> */}
                           <TableCell>{record.childName}</TableCell>
                           <TableCell>{record.age}</TableCell>
                           <TableCell>
@@ -845,114 +1240,123 @@ export default function ReportsPage() {
                     </TableBody>
                   </Table>
                 </div>
-                {/* Pagination Controls */}
-                {/* <div className="flex justify-between items-center mt-4">
-                  <Button
-                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                    disabled={page === 1 || loading}
-                  >
-                    Previous
-                  </Button>
-
-                  <p>
-                    Page {page} of {totalPages} ({totalCount} total entries)
-                  </p>
-
-                  <Button
-                    onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                    disabled={page === totalPages || loading}
-                  >
-                    Next
-                  </Button>
-                </div> */}
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Self Registration */}
-          {/* Self Registration */}
-          <TabsContent value="selfRegistrations">
-            <Card>
-              <CardHeader>
-                <CardTitle>Self Registered Users</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>बालकको नाम</TableHead>
-                        <TableHead>उमेर</TableHead>
-                        <TableHead>लिङ्ग</TableHead>
-                        <TableHead>अभिभावक</TableHead>
-                        <TableHead>बुवाको नाम</TableHead>
-                        <TableHead>आमाको नाम</TableHead>
-                        <TableHead>जिल्ला</TableHead>
-                        <TableHead>Palika</TableHead>
-                        <TableHead>सम्पर्क</TableHead>
-                        <TableHead>उचाइ</TableHead>
-                        <TableHead>तौल</TableHead>
-                        <TableHead>अलर्जी</TableHead>
-                        <TableHead>औषधि इतिहास</TableHead>
-                        <TableHead>दर्ता मिति</TableHead>
-                        <TableHead>स्थिति</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {selfRegistrations.map((record) => (
-                        <TableRow key={record.unique_id}>
-                          <TableCell>{record.unique_id}</TableCell>
-                          <TableCell>{record.child_name}</TableCell>
-                          <TableCell>{record.age}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {record.gender === "male" ? "पुरुष" : "महिला"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{record.guardian_name}</TableCell>
-                          <TableCell>{record.father_name}</TableCell>
-                          <TableCell>{record.mother_name}</TableCell>
-                          <TableCell>{record.district}</TableCell>
-                          <TableCell>{record.palika}</TableCell>
-                          <TableCell>{record.contact_number}</TableCell>
-                          <TableCell>{record.height || "-"}</TableCell>
-                          <TableCell>{record.weight} kg</TableCell>
-                          <TableCell>{record.allergies}</TableCell>
-                          <TableCell>{record.previous_medications}</TableCell>
-                          <TableCell>
-                            {new Date(record.created_at).toLocaleDateString(
-                              "ne-NP"
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={
-                                record.vaccination_status === "new"
-                                  ? "default"
-                                  : "secondary"
-                              }
-                            >
-                              {record.vaccination_status === "new"
-                                ? "नयाँ"
-                                : "पूरा"}
-                            </Badge>
-                          </TableCell>
+          {/* SELF REGISTRATION CONTENT */}
+          {role === "premium" && (
+            <TabsContent value="selfRegistrations">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Self Registered Users</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>ID</TableHead>
+                          <TableHead>बालकको नाम</TableHead>
+                          <TableHead>उमेर</TableHead>
+                          <TableHead>लिङ्ग</TableHead>
+                          <TableHead>अभिभावक</TableHead>
+                          <TableHead>बुवाको नाम</TableHead>
+                          <TableHead>आमाको नाम</TableHead>
+                          <TableHead>जिल्ला</TableHead>
+                          <TableHead>Palika</TableHead>
+                          <TableHead>सम्पर्क</TableHead>
+                          <TableHead>उचाइ</TableHead>
+                          <TableHead>तौल</TableHead>
+                          <TableHead>अलर्जी</TableHead>
+                          <TableHead>औषधि इतिहास</TableHead>
+                          <TableHead>दर्ता मिति</TableHead>
+                          <TableHead>स्थिति</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                      </TableHeader>
+                      <TableBody>
+                        {selfRegistrations.map((record) => (
+                          <TableRow key={record.unique_id}>
+                            <TableCell>{record.unique_id}</TableCell>
+                            <TableCell>{record.child_name}</TableCell>
+                            <TableCell>{record.age}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {record.gender === "male" ? "पुरुष" : "महिला"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{record.guardian_name}</TableCell>
+                            <TableCell>{record.father_name}</TableCell>
+                            <TableCell>{record.mother_name}</TableCell>
+                            <TableCell>{record.district}</TableCell>
+                            <TableCell>{record.palika}</TableCell>
+                            <TableCell>{record.contact_number}</TableCell>
+                            <TableCell>{record.height || "-"}</TableCell>
+                            <TableCell>{record.weight} kg</TableCell>
+                            <TableCell>{record.allergies}</TableCell>
+                            <TableCell>{record.previous_medications}</TableCell>
+                            <TableCell>
+                              {new Date(record.created_at).toLocaleDateString(
+                                "ne-NP"
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">
+                                {record.vaccination_status || "Pending"}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+          {/* END SELF REGISTRATION CONTENT */}
 
+          {/* SCREENING LOG CONTENT */}
           <TabsContent value="screenings" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Droplets className="h-5 w-5" />
-                  स्वर्णप्राशन लग
+                <CardTitle>
+                  <div className="flex gap-2 items-center mt-4">
+                    स्वर्णप्राशन लग (कुल: {end} / {totalDoseCount})
+                    <Button
+                      onClick={() => {
+                        setCurrentPage(currentPage - 1);
+                        fetchTotalDose(currentPage - 1);
+                      }}
+                      disabled={currentPage === 1 || loading}
+                    >
+                      Previous
+                    </Button>
+                    {/* <p className="text-sm text-gray-700">
+                  Page **{page}** of **{totalPages}** (showing {end} /{" "}
+                  {totalCount} total entries)
+                </p> */}
+                    <Button
+                      disabled={end >= totalDoseCount}
+                      onClick={() => {
+                        setCurrentPage(currentPage + 1);
+                        fetchTotalDose(currentPage + 1);
+                      }}
+                    >
+                      Next
+                    </Button>
+                    <Button
+                      onClick={exportAllDoseData}
+                      disabled={exporting} // Use the new state here
+                    >
+                      <Download
+                        className={`h-4 w-4 mr-2 ${
+                          exporting ? "animate-spin" : ""
+                        }`}
+                      />
+                      {exporting ? " CSV निर्यात" : " CSV निर्यात"}
+                    </Button>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -960,71 +1364,38 @@ export default function ReportsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>क्र.सं.</TableHead>
-                        <TableHead>मिति</TableHead>
-                        <TableHead>बिरामी ID</TableHead>
-                        <TableHead>मात्रा</TableHead>
-                        <TableHead>सेवन गराउने</TableHead>
+                        <TableHead>Patient ID</TableHead>
+                        <TableHead>Dose Amount</TableHead>
+                        <TableHead>Administered By</TableHead>
+                        <TableHead>Batch No.</TableHead>
                         <TableHead>प्रतिक्रिया</TableHead>
-                        <TableHead>ब्याच नम्बर</TableHead>
-                        <TableHead>टिप्पणी</TableHead>
+                        <TableHead>मिति</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {screenings.map((screening, index) => (
-                        <TableRow key={screening.id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>
-                            {new Date(
-                              screening.screening_date
-                            ).toLocaleDateString("ne-NP")}
-                          </TableCell>
-                          <TableCell className="font-mono text-xs">
-                            {screening.patient_id}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <div className="flex items-center gap-1">
-                                {Array.from(
-                                  {
-                                    length:
-                                      Number.parseInt(screening.dose_amount) ||
-                                      1,
-                                  },
-                                  (_, i) => (
-                                    <div
-                                      key={i}
-                                      className="w-2 h-2 bg-amber-400 rounded-full"
-                                    ></div>
-                                  )
-                                )}
-                              </div>
-                              <span className="text-sm">
-                                {screening.dose_amount} थोपा
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {screening.administered_by}
-                          </TableCell>
+                      {screenings.map((screen) => (
+                        <TableRow key={screen.id}>
+                          <TableCell>{screen.patient_id}</TableCell>
+                          <TableCell>{screen.dose_amount} थोपा</TableCell>
+                          <TableCell>{screen.administered_by}</TableCell>
+                          <TableCell>{screen.batch_number}</TableCell>
                           <TableCell>
                             <Badge
                               variant={
-                                screening.child_reaction === "normal"
+                                screen.child_reaction === "normal"
                                   ? "default"
                                   : "destructive"
                               }
                             >
-                              {screening.child_reaction === "normal"
+                              {screen.child_reaction === "normal"
                                 ? "सामान्य"
-                                : "प्रतिक्रिया"}
+                                : "प्रतिकूल"}
                             </Badge>
                           </TableCell>
-                          <TableCell className="font-mono text-xs">
-                            {screening.batch_number}
-                          </TableCell>
-                          <TableCell className="text-xs max-w-32 truncate">
-                            {screening.screening_type || "-"}
+                          <TableCell>
+                            {new Date(screen.screening_date).toLocaleDateString(
+                              "ne-NP"
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -1034,200 +1405,86 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
           </TabsContent>
+          {/* END SCREENING LOG CONTENT */}
 
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Success Rate Analysis */}
+          {/* ANALYTICS TAB (Admin Only) */}
+          {role === "premium" && (
+            <TabsContent value="analytics" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>प्रतिक्रिया विश्लेषण (Screenings)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={reactionData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) =>
+                            `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                          }
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {reactionData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>उमेर समूह (Bar Chart)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={ageGroupData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#EC4899" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          )}
+
+          {/* TRENDS TAB (Admin Only) */}
+          {role === "premium" && (
+            <TabsContent value="trends" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>सफलता दर विश्लेषण</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                      <div>
-                        <p className="text-sm font-medium text-green-800">
-                          सामान्य प्रतिक्रिया
-                        </p>
-                        <p className="text-2xl font-bold text-green-900">
-                          {stats.normalReactions}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-green-600">
-                          {stats.totalScreenings > 0
-                            ? (
-                                (stats.normalReactions /
-                                  stats.totalScreenings) *
-                                100
-                              ).toFixed(1)
-                            : 0}
-                          %
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
-                      <div>
-                        <p className="text-sm font-medium text-red-800">
-                          प्रतिकूल प्रतिक्रिया
-                        </p>
-                        <p className="text-2xl font-bold text-red-900">
-                          {stats.adverseReactions}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-red-600">
-                          {stats.totalScreenings > 0
-                            ? (
-                                (stats.adverseReactions /
-                                  stats.totalScreenings) *
-                                100
-                              ).toFixed(1)
-                            : 0}
-                          %
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Age Group Performance */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>उमेर समूह अनुसार प्रदर्शन</CardTitle>
+                  <CardTitle>मासिक दर्ता प्रवृत्ति</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={ageGroupData}>
+                    <LineChart data={monthlyTrendData}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="name" />
                       <YAxis />
                       <Tooltip />
-                      <Bar dataKey="value" fill="#8B5CF6" />
-                    </BarChart>
+                      <Line
+                        type="monotone"
+                        dataKey="registrations"
+                        stroke="#8884d8"
+                        strokeWidth={2}
+                      />
+                    </LineChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
-            </div>
-
-            {/* Summary Statistics */}
-            <Card>
-              <CardHeader>
-                <CardTitle>सारांश तथ्याङ्क</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600">
-                      {stats.total}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      कुल दर्ता संख्या
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-purple-600">
-                      {stats.totalScreenings}
-                    </div>
-                    <div className="text-sm text-gray-600">कुल स्क्रिनिङ</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600">
-                      {stats.totalScreenings > 0
-                        ? Math.round(
-                            (stats.normalReactions / stats.totalScreenings) *
-                              100
-                          )
-                        : 0}
-                      %
-                    </div>
-                    <div className="text-sm text-gray-600">सफलता दर</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-red-600">
-                      {stats.totalScreenings > 0
-                        ? Math.round(
-                            (stats.adverseReactions / stats.totalScreenings) *
-                              100
-                          )
-                        : 0}
-                      %
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      प्रतिकूल प्रतिक्रिया दर
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="trends" className="space-y-6">
-            {/* Monthly Registration Trend */}
-            <Card>
-              <CardHeader>
-                <CardTitle>मासिक दर्ता प्रवृत्ति</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={monthlyTrendData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="registrations"
-                      stroke="#3B82F6"
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Performance Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-center">दैनिक औसत</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <div className="text-4xl font-bold text-blue-600 mb-2">
-                    {stats.total > 0 ? Math.round(stats.total / 30) : 0}
-                  </div>
-                  <p className="text-gray-600">दर्ता प्रति दिन</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-center">स्क्रिनिङ दर</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <div className="text-4xl font-bold text-purple-600 mb-2">
-                    {stats.total > 0
-                      ? (stats.totalScreenings / stats.total).toFixed(1)
-                      : 0}
-                  </div>
-                  <p className="text-gray-600">प्रति बिरामी</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-center">कभरेज</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <div className="text-4xl font-bold text-green-600 mb-2">
-                    {uniqueDistricts.length}
-                  </div>
-                  <p className="text-gray-600">जिल्लाहरू</p>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
