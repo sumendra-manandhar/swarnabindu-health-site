@@ -672,7 +672,7 @@ export default function ReportsPage() {
       const data = await fetchAllDoseRows();
 
       // 2. Map the entire dataset to the expected format
-      let dataToExport = mapServerData(data);
+      const dataToExport = mapServerData(data);
 
       // 4. Generate CSV content
       const headers = [
