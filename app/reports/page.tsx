@@ -484,6 +484,7 @@ export default function ReportsPage() {
       district: record.district || userDistrict,
       palika: record.palika || "",
       ward: record.ward || "",
+      reg_id: record.reg_id || '', // NEW FIELD ADDED
     }));
   };
 
@@ -560,6 +561,7 @@ export default function ReportsPage() {
       const headers = [
         "क्रम संख्या", // NEW HEADER ADDED HERE
         // "सिरियल नम्बर",
+        "Registration ID",
         "बालकको नाम",
         "जन्म मिति",
         "उमेर",
@@ -592,6 +594,7 @@ export default function ReportsPage() {
             index + 1, // <--- THE NEW SEQUENTIAL ID (starts at 1)
             // ----------------------------------------------------
             // record.serial_no,
+            record.reg_id,
             record.childName,
             record.dateOfBirth,
             record.age,
