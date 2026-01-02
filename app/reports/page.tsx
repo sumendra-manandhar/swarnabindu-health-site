@@ -559,7 +559,7 @@ export default function ReportsPage() {
       // 4. Generate CSV content
       const headers = [
         "क्रम संख्या", // NEW HEADER ADDED HERE
-        "सिरियल नम्बर",
+        // "सिरियल नम्बर",
         "बालकको नाम",
         "जन्म मिति",
         "उमेर",
@@ -570,7 +570,7 @@ export default function ReportsPage() {
         "पालिका",
         "वडा",
         "मात्रा",
-        "समय",
+        // "समय",
         "सेवन गराउने",
         "प्रतिक्रिया",
         "तौल",
@@ -580,7 +580,10 @@ export default function ReportsPage() {
 
       debugger;
 
-      const csvContent = [
+      const BOM = "\uFEFF";
+
+
+      const csvContent = BOM + [
         headers.join(","),
         // Use map with index to generate the sequential ID
         ...dataToExport.map((record, index) =>
@@ -588,7 +591,7 @@ export default function ReportsPage() {
             // ----------------------------------------------------
             index + 1, // <--- THE NEW SEQUENTIAL ID (starts at 1)
             // ----------------------------------------------------
-            record.serial_no,
+            // record.serial_no,
             record.childName,
             record.dateOfBirth,
             record.age,
@@ -599,7 +602,7 @@ export default function ReportsPage() {
             record.palika,
             record.ward,
             `${record.dose_amount} थोपा`,
-            record.dose_time,
+            // record.dose_time,
             record.administered_by,
             record.child_reaction === "normal" ? "सामान्य" : "प्रतिक्रिया",
             `${record.weight} कि.ग्रा.`,
@@ -665,88 +668,161 @@ export default function ReportsPage() {
     return allRows;
   };
 
-  const exportAllDoseData = async () => {
-    setExporting(true);
-    try {
-      // 1. Fetch ALL data (without range limit)
-      const data = await fetchAllDoseRows();
+  // const exportAllDoseData = async () => {
+  //   setExporting(true);
+  //   try {
+  //     // 1. Fetch ALL data (without range limit)
+  //     const data = await fetchAllDoseRows();
 
-      // 2. Map the entire dataset to the expected format
-      const dataToExport = mapServerData(data);
+  //     // 2. Map the entire dataset to the expected format
+  //     const dataToExport = mapServerData(data);
 
-      // 4. Generate CSV content
-      const headers = [
-        "क्रम संख्या",
-        "रजिस्ट्रेशन आइडी",
-        "बालकको आइडी",
-        "स्क्रिनिङ्ग प्रकार",
-        "स्क्रिनिङ मिति",
-        "अर्को मात्रा मिति",
-        "सेवन गराउने",
-        "ब्याच नम्बर",
-        "मात्रा (थोपा)",
-        "प्रतिक्रिया",
-        "तौल (कि.ग्रा.)",
-        "उचाइ (से.मि.)",
-        "MUAC (से.मि.)",
-        "तापक्रम",
-        "टिप्पणी",
-        "दर्ता मिति",
-      ];
+  //     // 4. Generate CSV content
+  //     const headers = [
+  //       "क्रम संख्या",
+  //       "रजिस्ट्रेशन आइडी",
+  //       "बालकको आइडी",
+  //       "स्क्रिनिङ्ग प्रकार",
+  //       "स्क्रिनिङ मिति",
+  //       "अर्को मात्रा मिति",
+  //       "सेवन गराउने",
+  //       "ब्याच नम्बर",
+  //       "मात्रा (थोपा)",
+  //       "प्रतिक्रिया",
+  //       "तौल (कि.ग्रा.)",
+  //       "उचाइ (से.मि.)",
+  //       "MUAC (से.मि.)",
+  //       "तापक्रम",
+  //       "टिप्पणी",
+  //       "दर्ता मिति",
+  //     ];
 
-      const csvContent = [
+  //     const BOM = "\uFEFF";
+
+  //     const csvContent = BOM + [
+  //       headers.join(","),
+  //       // Use map with index to generate the sequential ID
+  //       ...dataToExport.map((record, index) =>
+  //         [
+  //           index + 1, // क्रम संख्या (1,2,3,...)
+  //           record.reg_id ?? "", // रजिस्ट्रेशन आइडी
+  //           record.patient_id ?? "", // बालकको आइडी
+  //           record.screening_type === "follow_up"
+  //             ? "पुनः अनुगमन"
+  //             : "प्रारम्भिक", // स्क्रिनिङ प्रकार
+  //           record.screening_date ?? "", // स्क्रिनिङ मिति
+  //           record.next_dose_date ?? "", // अर्को मात्रा मिति
+  //           record.administered_by ?? "", // सेवन गराउने
+  //           record.batch_number ?? "", // ब्याच नम्बर
+  //           record.dose_amount ? `${record.dose_amount} थोपा` : "", // मात्रा
+  //           record.child_reaction === "normal" ? "सामान्य" : "प्रतिक्रिया", // प्रतिक्रिया
+  //           record.weight ? `${record.weight} कि.ग्रा.` : "", // तौल
+  //           record.height ? `${record.height} से.मि.` : "", // उचाइ
+  //           record.muac ? `${record.muac} से.मि.` : "", // MUAC
+  //           record.temperature ? `${record.temperature} °C` : "", // तापक्रम
+  //           record.notes ?? "", // टिप्पणी
+  //           record.created_at ?? "", // दर्ता मिति
+  //         ]
+  //           .map(
+  //             (value) =>
+  //               // Wrap values in double quotes and escape internal quotes for CSV safety
+  //               `"${String(value).replace(/"/g, '""')}"`
+  //           )
+  //           .join(",")
+  //       ),
+  //     ].join("\n");
+
+  //     // 5. Trigger Download
+  //     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  //     const link = document.createElement("a");
+  //     const url = URL.createObjectURL(blob);
+  //     link.setAttribute("href", url);
+  //     link.setAttribute(
+  //       "download",
+  //       `swarnabindu-report-FULL-${new Date().toISOString().split("T")[0]}.csv`
+  //     );
+  //     link.style.visibility = "hidden";
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     document.body.removeChild(link);
+  //   } catch (err) {
+  //     console.error("Error exporting all data:", err);
+  //     alert("Error exporting data. Please check your network or console.");
+  //   } finally {
+  //     setExporting(false);
+  //   }
+  // };
+
+const exportAllDoseData = async () => {
+  try {
+    const BOM = "\uFEFF"; // Excel Nepali support
+
+    // 🔥 STEP 1: Fetch ALL rows
+    const rawData = await fetchAllDoseRows();
+    const dataToExport = rawData;
+
+    debugger
+
+    const headers = [
+      "S.No.",
+      "Patient ID",
+      "Dose Amount (थोपा)",
+      "Administered By",
+      "Batch No.",
+      "प्रतिक्रिया",
+      "मिति",
+    ];
+
+    const csvContent =
+      BOM +
+      [
         headers.join(","),
-        // Use map with index to generate the sequential ID
-        ...dataToExport.map((record, index) =>
+
+        // ✅ USE FULL DATASET HERE
+        ...dataToExport.map((record,index) =>
           [
-            index + 1, // क्रम संख्या (1,2,3,...)
-            record.reg_id ?? "", // रजिस्ट्रेशन आइडी
-            record.patient_id ?? "", // बालकको आइडी
-            record.screening_type === "follow_up"
-              ? "पुनः अनुगमन"
-              : "प्रारम्भिक", // स्क्रिनिङ प्रकार
-            record.screening_date ?? "", // स्क्रिनिङ मिति
-            record.next_dose_date ?? "", // अर्को मात्रा मिति
-            record.administered_by ?? "", // सेवन गराउने
-            record.batch_number ?? "", // ब्याच नम्बर
-            record.dose_amount ? `${record.dose_amount} थोपा` : "", // मात्रा
-            record.child_reaction === "normal" ? "सामान्य" : "प्रतिक्रिया", // प्रतिक्रिया
-            record.weight ? `${record.weight} कि.ग्रा.` : "", // तौल
-            record.height ? `${record.height} से.मि.` : "", // उचाइ
-            record.muac ? `${record.muac} से.मि.` : "", // MUAC
-            record.temperature ? `${record.temperature} °C` : "", // तापक्रम
-            record.notes ?? "", // टिप्पणी
-            record.created_at ?? "", // दर्ता मिति
+              index + 1,
+            record.patient_id ?? "",
+            record.dose_amount ? `${record.dose_amount} थोपा` : "",
+            record.administered_by ?? "",
+            record.batch_number ?? "",
+            record.child_reaction === "normal"
+              ? "सामान्य"
+              : record.child_reaction
+              ? "प्रतिकूल"
+              : "",
+            record.screening_date
+              ? new Date(record.screening_date)
+                  .toISOString()
+                  .split("T")[0]
+              : "",
           ]
             .map(
               (value) =>
-                // Wrap values in double quotes and escape internal quotes for CSV safety
                 `"${String(value).replace(/"/g, '""')}"`
             )
             .join(",")
         ),
       ].join("\n");
 
-      // 5. Trigger Download
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute(
-        "download",
-        `swarnabindu-report-FULL-${new Date().toISOString().split("T")[0]}.csv`
-      );
-      link.style.visibility = "hidden";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-      console.error("Error exporting all data:", err);
-      alert("Error exporting data. Please check your network or console.");
-    } finally {
-      setExporting(false);
-    }
-  };
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `dose-table-FULL-${new Date()
+      .toISOString()
+      .split("T")[0]}.csv`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (err) {
+    console.error("CSV export failed:", err);
+  }
+};
+
 
   // --- STATISTICS AND CHART DATA GENERATION ---
 
