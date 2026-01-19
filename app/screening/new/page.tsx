@@ -300,6 +300,8 @@ export default function NewScreeningPage() {
         }
       }
 
+      debugger;
+
       // Set merged data once
       setDoseHistory(mergedHistory);
     } catch (error) {

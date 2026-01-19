@@ -134,6 +134,9 @@ const getUserDistrict = (): string | undefined => {
 // --- MAIN COMPONENT ---
 
 export default function ReportsPage() {
+  const [monthFilter, setMonthFilter] = useState<string>("all");
+  const [yearFilter, setYearFilter] = useState<string>("all");
+
   const [registrations, setRegistrations] = useState<RegistrationRecord[]>([]);
   const [screenings, setScreenings] = useState<ScreeningRecord[]>([]);
   const [totalScreeningsCount, setTotalScreeningCount] = useState<
@@ -178,69 +181,69 @@ export default function ReportsPage() {
     }
   }, []);
 
-  // Fetch Total Count
-  const fetchTotalCount = async () => {
-    const { count, error } = await supabase
-      .from(registrationTable)
-      .select("*", { count: "exact", head: true });
+  const [totals, setTotals] = useState({
+    totalRegistrations: 0,
+    totalDoses: 0,
+  });
 
-    if (error) {
-      console.error("Error fetching count:", error);
-      return;
+  useEffect(() => {
+    const loadTotals = async () => {
+      const data = await fetchTotals();
+      setTotals(data);
+    };
+
+    loadTotals();
+  }, []);
+
+  const fetchTotals = async () => {
+    try {
+      // 1️⃣ Fetch total registrations
+      const regRes = await fetch(
+        `https://swarnabindhu-api.gyanbazzar.com/registration?page=1&limit=1`,
+      );
+      const regJson = await regRes.json();
+      const totalRegistrations = regJson.success ? regJson.totalRows || 0 : 0;
+
+      // 2️⃣ Fetch total dose logs
+      const doseRes = await fetch(
+        `https://swarnabindhu-api.gyanbazzar.com/dose_logs?page=1&limit=1`,
+      );
+      const doseJson = await doseRes.json();
+      const totalDoses = doseJson.success ? doseJson.totalRows || 0 : 0;
+
+      // 3️⃣ Return combined totals
+      return { totalRegistrations, totalDoses };
+    } catch (err) {
+      console.error("Error fetching totals:", err);
+      return { totalRegistrations: 0, totalDoses: 0 };
     }
-    setTotalCount(count || 0);
   };
 
-  // Fetch Paginated Registrations
   const fetchRegistrations = async (pageNum: number) => {
     setLoading(true);
+
     try {
-      const from = (pageNum - 1) * limit;
-      const to = from + limit - 1;
+      let url = `https://swarnabindhu-api.gyanbazzar.com/registration?page=${pageNum}&limit=${limit}`;
 
-      const { data, error, count } = await supabase
-        .from(registrationTable)
-        .select("*", { count: "exact" })
-        .order("created_at", { ascending: false })
-        .range(from, to);
+      if (monthFilter !== "all") url += `&month=${monthFilter}`;
+      if (yearFilter !== "all") url += `&year=${yearFilter}`;
 
-      if (error) throw error;
+      const res = await fetch(url);
 
-      if (count !== null) setTotalCount(count);
+      if (!res.ok) throw new Error("Failed to fetch registrations");
 
-      const mappedServerData = (data || []).map((record: any) => ({
-        id: record.id,
-        childName: record.childName || record.child_name || record.name || "",
-        dateOfBirth: record.dateOfBirth || record.date_of_birth || "",
-        age: record.age || "",
-        gender: record.gender || "",
-        guardianName:
-          record.guardianName ||
-          record.guardian_name ||
-          record.father_name ||
-          record.mother_name ||
-          "",
-        contactNumber: record.contactNumber || record.contact_number || "",
-        dose_amount: record.dose_amount || record.doseAmount || "2",
-        dose_time: record.dose_time || new Date().toLocaleTimeString("ne-NP"),
-        administered_by: record.administered_by || "स्वास्थ्यकर्मी",
-        child_reaction: record.child_reaction || "normal",
-        weight: record.weight || 0,
-        vaccination_status: record.vaccination_status || "completed",
-        date:
-          record.date ||
-          record.created_at ||
-          new Date().toLocaleDateString("ne-NP"),
-        serial_no: record.serial_no || record.serialNo || `SB${record.id}`,
-        district: record.district || userDistrict,
-        palika: record.palika || "",
-        ward: record.ward || "",
-      }));
+      const json = await res.json();
 
+      if (!json.success) throw new Error("API returned unsuccessful response");
+
+      setTotalCount(json.totalRows || 0);
+
+      const mappedServerData = mapServerData(json.data || []);
       setRegistrations(mappedServerData);
     } catch (err) {
       console.error("Error fetching registrations:", err);
       setRegistrations([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
@@ -248,26 +251,31 @@ export default function ReportsPage() {
 
   const fetchTotalDose = async (pageNum: number) => {
     setLoading(true);
+
     try {
-      const from = (pageNum - 1) * limit;
-      const to = from + limit - 1;
+      const pageSize = limit; // use the same limit as pagination
+      let url = `https://swarnabindhu-api.gyanbazzar.com/dose_logs?page=${pageNum}&limit=${pageSize}`;
 
-      const { data, error, count } = await supabase
-        .from("dose_logs")
-        .select("*", { count: "exact" })
-        .order("created_at", { ascending: false })
-        .range(from, to);
+      if (monthFilter !== "all") url += `&month=${monthFilter}`;
+      if (yearFilter !== "all") url += `&year=${yearFilter}`;
 
-      if (error) throw error;
+      const res = await fetch(url);
 
-      if (count !== null) setTotalDoseCount(count);
+      if (!res.ok) throw new Error(`Failed to fetch page ${pageNum}`);
 
-      const mappedServerData = data;
+      const json = await res.json();
 
-      setScreenings(mappedServerData);
+      if (!json.success) throw new Error("API returned unsuccessful response");
+
+      // Update total count from API
+      setTotalDoseCount(json.totalRows || 0);
+
+      // Set the data
+      setScreenings(json.data || []);
     } catch (err) {
-      console.error("Error fetching registrations:", err);
+      console.error("Error fetching dose logs:", err);
       setScreenings([]);
+      setTotalDoseCount(0);
     } finally {
       setLoading(false);
     }
@@ -284,38 +292,21 @@ export default function ReportsPage() {
       else setSelfRegistrations(data || []);
     };
 
-    const fetchTodayScreeningRegs = async () => {
-      const { count, data, error } = await supabase
-        .from("dose_logs")
-
-        .select("*", { count: "exact" })
-        .order("created_at", { ascending: false });
-      if (error) console.error("Error fetching screening logs:", error);
-      else setScreenings(data || []);
-    };
-
     // Fetch Total Count
 
     fetchSelfRegs();
-    fetchTodayScreeningRegs();
   }, []);
 
   // Initial load and page change effects
+
   useEffect(() => {
-    // 1. Fetch total count once
-    fetchTotalCount();
-    // 2. Fetch the first page (or current page) of data
     fetchRegistrations(page);
-  }, [registrationTable]); // Refetch when district/table changes
+  }, [page, monthFilter, yearFilter]);
 
   useEffect(() => {
     // Fetch new data when page changes
-    fetchRegistrations(page);
-  }, [page]); // Refetch when page changes
-  useEffect(() => {
-    // Fetch new data when page changes
     fetchTotalDose(page);
-  }, [page]); // Refetch when page changes
+  }, [page, monthFilter, yearFilter]); // Refetch when page changes
 
   // Filtering effect
   useEffect(() => {
@@ -336,7 +327,7 @@ export default function ReportsPage() {
           record.guardianName
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          record.serial_no.toLowerCase().includes(searchTerm.toLowerCase())
+          record.serial_no.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -346,13 +337,13 @@ export default function ReportsPage() {
 
     if (districtFilter !== "all") {
       filtered = filtered.filter(
-        (record) => record.district === districtFilter
+        (record) => record.district === districtFilter,
       );
     }
 
     if (reactionFilter !== "all") {
       filtered = filtered.filter(
-        (record) => record.child_reaction === reactionFilter
+        (record) => record.child_reaction === reactionFilter,
       );
     }
 
@@ -484,53 +475,91 @@ export default function ReportsPage() {
       district: record.district || userDistrict,
       palika: record.palika || "",
       ward: record.ward || "",
-      reg_id: record.reg_id || '', // NEW FIELD ADDED
+      reg_id: record.reg_id || "", // NEW FIELD ADDED
     }));
   };
 
-  // Add this line to your useState declarations in ReportsPage()
   const [exporting, setExporting] = useState(false);
 
-  // **This is the core fix for exporting all data**
+  // const fetchAllRows = async () => {
+  //   const pageSize = 1000; // Supabase max limit
+  //   let allRows: any[] = [];
+  //   let from = 0;
+  //   let to = pageSize - 1;
+
+  //   while (true) {
+  //     const { data, error } = await supabase
+  //       .from(registrationTable)
+  //       .select("*")
+  //       .range(from, to)
+  //       .order("created_at", { ascending: false });
+
+  //     if (error) throw error;
+
+  //     allRows = allRows.concat(data);
+
+  //     if (data.length < pageSize) break; // last page reached
+
+  //     from += pageSize;
+  //     to += pageSize;
+  //   }
+
+  //   return allRows;
+  // };
 
   const fetchAllRows = async () => {
-    const pageSize = 1000; // Supabase max limit
+    const pageSize = 1000; // API max
     let allRows: any[] = [];
-    let from = 0;
-    let to = pageSize - 1;
+    let currentPage = 1;
+    let totalPages = 1;
 
-    while (true) {
-      const { data, error } = await supabase
-        .from(registrationTable)
-        .select("*")
-        .range(from, to)
-        .order("created_at", { ascending: false });
+    try {
+      while (currentPage <= totalPages) {
+        // ✅ Include month and year in the URL
+        let url = `https://swarnabindhu-api.gyanbazzar.com/registration?page=${currentPage}&limit=${pageSize}`;
 
-      if (error) throw error;
+        if (monthFilter !== "all") url += `&month=${monthFilter}`;
+        if (yearFilter !== "all") url += `&year=${yearFilter}`;
 
-      allRows = allRows.concat(data);
+        const res = await fetch(url);
 
-      if (data.length < pageSize) break; // last page reached
+        if (!res.ok) {
+          throw new Error(`Failed on page ${currentPage}`);
+        }
 
-      from += pageSize;
-      to += pageSize;
+        const json = await res.json();
+
+        if (!json.success) {
+          throw new Error("API returned unsuccessful response");
+        }
+
+        // accumulate rows
+        allRows = allRows.concat(json.data || []);
+
+        // update total pages from API
+        totalPages = json.totalPages;
+
+        currentPage++;
+      }
+
+      return allRows;
+    } catch (error) {
+      console.error("Error fetching all rows:", error);
+      return [];
     }
-
-    return allRows;
   };
 
-  // **This is the core fix for exporting all data**
   const exportAllData = async () => {
-    registrations.length;
     setExporting(true);
+
     try {
-      // 1. Fetch ALL data (without range limit)
+      // 1. Fetch all filtered rows (month/year applied)
       const data = await fetchAllRows();
 
-      // 2. Map the entire dataset to the expected format
+      // 2. Map API data
       let dataToExport = mapServerData(data);
 
-      // 3. Re-apply current filters to the full dataset
+      // 3. Re-apply client-side filters (search, gender, district, reaction)
       if (searchTerm) {
         dataToExport = dataToExport.filter(
           (record) =>
@@ -538,29 +567,28 @@ export default function ReportsPage() {
             record.guardianName
               .toLowerCase()
               .includes(searchTerm.toLowerCase()) ||
-            record.serial_no.toLowerCase().includes(searchTerm.toLowerCase())
+            record.serial_no.toLowerCase().includes(searchTerm.toLowerCase()),
         );
       }
       if (genderFilter !== "all") {
         dataToExport = dataToExport.filter(
-          (record) => record.gender === genderFilter
+          (record) => record.gender === genderFilter,
         );
       }
       if (districtFilter !== "all") {
         dataToExport = dataToExport.filter(
-          (record) => record.district === districtFilter
+          (record) => record.district === districtFilter,
         );
       }
       if (reactionFilter !== "all") {
         dataToExport = dataToExport.filter(
-          (record) => record.child_reaction === reactionFilter
+          (record) => record.child_reaction === reactionFilter,
         );
       }
 
-      // 4. Generate CSV content
+      // 4. Generate CSV
       const headers = [
-        "क्रम संख्या", // NEW HEADER ADDED HERE
-        // "सिरियल नम्बर",
+        "क्रम संख्या",
         "Registration ID",
         "बालकको नाम",
         "जन्म मिति",
@@ -572,7 +600,6 @@ export default function ReportsPage() {
         "पालिका",
         "वडा",
         "मात्रा",
-        // "समय",
         "सेवन गराउने",
         "प्रतिक्रिया",
         "तौल",
@@ -580,303 +607,216 @@ export default function ReportsPage() {
         "दर्ता मिति",
       ];
 
-      debugger;
-
       const BOM = "\uFEFF";
 
+      const csvContent =
+        BOM +
+        [
+          headers.join(","),
+          ...dataToExport.map((record, index) =>
+            [
+              index + 1,
+              record.reg_id,
+              record.childName,
+              record.dateOfBirth,
+              record.age,
+              record.gender === "male" ? "पुरुष" : "महिला",
+              record.guardianName,
+              record.contactNumber,
+              record.district,
+              record.palika,
+              record.ward,
+              `${record.dose_amount} थोपा`,
+              record.administered_by,
+              record.child_reaction === "normal" ? "सामान्य" : "प्रतिक्रिया",
+              `${record.weight} कि.ग्रा.`,
+              record.vaccination_status,
+              record.date,
+            ]
+              .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+              .join(","),
+          ),
+        ].join("\n");
 
-      const csvContent = BOM + [
-        headers.join(","),
-        // Use map with index to generate the sequential ID
-        ...dataToExport.map((record, index) =>
-          [
-            // ----------------------------------------------------
-            index + 1, // <--- THE NEW SEQUENTIAL ID (starts at 1)
-            // ----------------------------------------------------
-            // record.serial_no,
-            record.reg_id,
-            record.childName,
-            record.dateOfBirth,
-            record.age,
-            record.gender === "male" ? "पुरुष" : "महिला",
-            record.guardianName,
-            record.contactNumber,
-            record.district,
-            record.palika,
-            record.ward,
-            `${record.dose_amount} थोपा`,
-            // record.dose_time,
-            record.administered_by,
-            record.child_reaction === "normal" ? "सामान्य" : "प्रतिक्रिया",
-            `${record.weight} कि.ग्रा.`,
-            record.vaccination_status,
-            record.date,
-          ]
-            .map(
-              (value) =>
-                // Wrap values in double quotes and escape internal quotes for CSV safety
-                `"${String(value).replace(/"/g, '""')}"`
-            )
-            .join(",")
-        ),
-      ].join("\n");
-
-      // 5. Trigger Download
+      // 5. Trigger download
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute(
-        "download",
-        `swarnabindu-report-FULL-${new Date().toISOString().split("T")[0]}.csv`
-      );
-      link.style.visibility = "hidden";
+      link.href = URL.createObjectURL(blob);
+      link.download = `swarnabindu-report-${monthFilter}-${yearFilter}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (err) {
-      console.error("Error exporting all data:", err);
-      alert("Error exporting data. Please check your network or console.");
+      console.error("Error exporting filtered data:", err);
+      alert("CSV export failed. Check console for errors.");
     } finally {
       setExporting(false);
     }
   };
 
-  // **This is the core fix for exporting all data**
-
   const fetchAllDoseRows = async () => {
-    const pageSize = 1000; // Supabase max limit
+    const pageSize = 1000; // API max
     let allRows: any[] = [];
-    let from = 0;
-    let to = pageSize - 1;
-    debugger;
+    let currentPage = 1;
+    let totalPages = 1;
 
-    while (true) {
-      const { data, error } = await supabase
-        .from("dose_logs")
-        .select("*")
-        .range(from, to)
-        .order("created_at", { ascending: false });
+    try {
+      while (currentPage <= totalPages) {
+        // ✅ Include month and year in the URL
+        let url = `https://swarnabindhu-api.gyanbazzar.com/dose_logs?page=${currentPage}&limit=${pageSize}`;
 
-      if (error) throw error;
+        if (monthFilter !== "all") url += `&month=${monthFilter}`;
+        if (yearFilter !== "all") url += `&year=${yearFilter}`;
 
-      allRows = allRows.concat(data);
+        const res = await fetch(url);
 
-      if (data.length < pageSize) break; // last page reached
+        if (!res.ok) {
+          throw new Error(`Failed on page ${currentPage}`);
+        }
 
-      from += pageSize;
-      to += pageSize;
+        const json = await res.json();
+
+        if (!json.success) {
+          throw new Error("API returned unsuccessful response");
+        }
+
+        // accumulate rows
+        allRows = allRows.concat(json.data || []);
+
+        // update total pages from API
+        totalPages = json.totalPages;
+
+        currentPage++;
+      }
+
+      return allRows;
+    } catch (error) {
+      console.error("Error fetching all rows:", error);
+      return [];
     }
-
-    return allRows;
   };
 
-  // const exportAllDoseData = async () => {
-  //   setExporting(true);
-  //   try {
-  //     // 1. Fetch ALL data (without range limit)
-  //     const data = await fetchAllDoseRows();
+  const exportAllDoseData = async () => {
+    try {
+      const BOM = "\uFEFF"; // Excel Nepali support
 
-  //     // 2. Map the entire dataset to the expected format
-  //     const dataToExport = mapServerData(data);
+      // 🔥 STEP 1: Fetch ALL rows
+      const rawData = await fetchAllDoseRows();
+      const dataToExport = rawData;
 
-  //     // 4. Generate CSV content
-  //     const headers = [
-  //       "क्रम संख्या",
-  //       "रजिस्ट्रेशन आइडी",
-  //       "बालकको आइडी",
-  //       "स्क्रिनिङ्ग प्रकार",
-  //       "स्क्रिनिङ मिति",
-  //       "अर्को मात्रा मिति",
-  //       "सेवन गराउने",
-  //       "ब्याच नम्बर",
-  //       "मात्रा (थोपा)",
-  //       "प्रतिक्रिया",
-  //       "तौल (कि.ग्रा.)",
-  //       "उचाइ (से.मि.)",
-  //       "MUAC (से.मि.)",
-  //       "तापक्रम",
-  //       "टिप्पणी",
-  //       "दर्ता मिति",
-  //     ];
 
-  //     const BOM = "\uFEFF";
 
-  //     const csvContent = BOM + [
-  //       headers.join(","),
-  //       // Use map with index to generate the sequential ID
-  //       ...dataToExport.map((record, index) =>
-  //         [
-  //           index + 1, // क्रम संख्या (1,2,3,...)
-  //           record.reg_id ?? "", // रजिस्ट्रेशन आइडी
-  //           record.patient_id ?? "", // बालकको आइडी
-  //           record.screening_type === "follow_up"
-  //             ? "पुनः अनुगमन"
-  //             : "प्रारम्भिक", // स्क्रिनिङ प्रकार
-  //           record.screening_date ?? "", // स्क्रिनिङ मिति
-  //           record.next_dose_date ?? "", // अर्को मात्रा मिति
-  //           record.administered_by ?? "", // सेवन गराउने
-  //           record.batch_number ?? "", // ब्याच नम्बर
-  //           record.dose_amount ? `${record.dose_amount} थोपा` : "", // मात्रा
-  //           record.child_reaction === "normal" ? "सामान्य" : "प्रतिक्रिया", // प्रतिक्रिया
-  //           record.weight ? `${record.weight} कि.ग्रा.` : "", // तौल
-  //           record.height ? `${record.height} से.मि.` : "", // उचाइ
-  //           record.muac ? `${record.muac} से.मि.` : "", // MUAC
-  //           record.temperature ? `${record.temperature} °C` : "", // तापक्रम
-  //           record.notes ?? "", // टिप्पणी
-  //           record.created_at ?? "", // दर्ता मिति
-  //         ]
-  //           .map(
-  //             (value) =>
-  //               // Wrap values in double quotes and escape internal quotes for CSV safety
-  //               `"${String(value).replace(/"/g, '""')}"`
-  //           )
-  //           .join(",")
-  //       ),
-  //     ].join("\n");
+      const headers = [
+        "S.No.",
+        "Patient ID",
+        "Dose Amount (थोपा)",
+        "Administered By",
+        "Batch No.",
+        "प्रतिक्रिया",
+        "मिति",
+      ];
 
-  //     // 5. Trigger Download
-  //     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  //     const link = document.createElement("a");
-  //     const url = URL.createObjectURL(blob);
-  //     link.setAttribute("href", url);
-  //     link.setAttribute(
-  //       "download",
-  //       `swarnabindu-report-FULL-${new Date().toISOString().split("T")[0]}.csv`
-  //     );
-  //     link.style.visibility = "hidden";
-  //     document.body.appendChild(link);
-  //     link.click();
-  //     document.body.removeChild(link);
-  //   } catch (err) {
-  //     console.error("Error exporting all data:", err);
-  //     alert("Error exporting data. Please check your network or console.");
-  //   } finally {
-  //     setExporting(false);
-  //   }
-  // };
+      const csvContent =
+        BOM +
+        [
+          headers.join(","),
 
-const exportAllDoseData = async () => {
-  try {
-    const BOM = "\uFEFF"; // Excel Nepali support
-
-    // 🔥 STEP 1: Fetch ALL rows
-    const rawData = await fetchAllDoseRows();
-    const dataToExport = rawData;
-
-    debugger
-
-    const headers = [
-      "S.No.",
-      "Patient ID",
-      "Dose Amount (थोपा)",
-      "Administered By",
-      "Batch No.",
-      "प्रतिक्रिया",
-      "मिति",
-    ];
-
-    const csvContent =
-      BOM +
-      [
-        headers.join(","),
-
-        // ✅ USE FULL DATASET HERE
-        ...dataToExport.map((record,index) =>
-          [
+          // ✅ USE FULL DATASET HERE
+          ...dataToExport.map((record, index) =>
+            [
               index + 1,
-            record.patient_id ?? "",
-            record.dose_amount ? `${record.dose_amount} थोपा` : "",
-            record.administered_by ?? "",
-            record.batch_number ?? "",
-            record.child_reaction === "normal"
-              ? "सामान्य"
-              : record.child_reaction
-              ? "प्रतिकूल"
-              : "",
-            record.screening_date
-              ? new Date(record.screening_date)
-                  .toISOString()
-                  .split("T")[0]
-              : "",
-          ]
-            .map(
-              (value) =>
-                `"${String(value).replace(/"/g, '""')}"`
-            )
-            .join(",")
-        ),
-      ].join("\n");
+              record.patient_id ?? "",
+              record.dose_amount ? `${record.dose_amount} थोपा` : "",
+              record.administered_by ?? "",
+              record.batch_number ?? "",
+              record.child_reaction === "normal"
+                ? "सामान्य"
+                : record.child_reaction
+                  ? "प्रतिकूल"
+                  : "",
+              record.screening_date
+                ? new Date(record.screening_date).toISOString().split("T")[0]
+                : "",
+            ]
+              .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+              .join(","),
+          ),
+        ].join("\n");
 
-    const blob = new Blob([csvContent], {
-      type: "text/csv;charset=utf-8;",
-    });
+      const blob = new Blob([csvContent], {
+        type: "text/csv;charset=utf-8;",
+      });
 
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `dose-table-FULL-${new Date()
-      .toISOString()
-      .split("T")[0]}.csv`;
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `dose-table-FULL-${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  } catch (err) {
-    console.error("CSV export failed:", err);
-  }
-};
-
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("CSV export failed:", err);
+    }
+  };
 
   // --- STATISTICS AND CHART DATA GENERATION ---
 
-  const getStatistics = () => {
-    const total = registrations.length;
+  const getStatistics = (
+    registrations: any[],
+    screenings: any[],
+    totals: { totalRegistrations: number; totalDoses: number }, // optional
+  ) => {
 
+    const total = totals?.totalRegistrations || registrations.length;
     const totalScreenings = screenings.length;
+
     const maleCount = registrations.filter((r) => r.gender === "male").length;
     const femaleCount = registrations.filter(
-      (r) => r.gender === "female"
-    ).length;
-    const normalReactions = screenings.filter(
-      (s) => s.child_reaction === "normal"
-    ).length;
-    const adverseReactions = screenings.filter(
-      (s) => s.child_reaction === "adverse"
+      (r) => r.gender === "female",
     ).length;
 
-    // Age groups based on dose amounts
+    const normalReactions = screenings.filter(
+      (s) => s.child_reaction === "normal",
+    ).length;
+    const adverseReactions = screenings.filter(
+      (s) => s.child_reaction === "adverse",
+    ).length;
+
     const ageGroups = {
       "6-12 महिना": registrations.filter(
-        (r) => r.dose_amount === "1" || r.dose_amount === "2"
+        (r) => r.dose_amount === "1" || r.dose_amount === "2",
       ).length,
       "1-2 वर्ष": registrations.filter(
-        (r) => r.dose_amount === "3" || r.dose_amount === "4"
+        (r) => r.dose_amount === "3" || r.dose_amount === "4",
       ).length,
       "2-5 वर्ष": registrations.filter(
-        (r) => Number.parseInt(r.dose_amount) >= 4
+        (r) => Number.parseInt(r.dose_amount) >= 4,
       ).length,
     };
 
-    // Registrations by district (using palika for better granularity in local view)
-    const districtStats = registrations.reduce((acc, reg) => {
-      acc[reg.palika] = (acc[reg.palika] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const districtStats = registrations.reduce(
+      (acc, reg) => {
+        acc[reg.palika] = (acc[reg.palika] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-    // Monthly trend (Note: This is only based on the currently loaded page's data)
-    const monthlyData = registrations.reduce((acc, reg) => {
-      // Assuming 'date' is a parsable date string
-      try {
-        const month = new Date(reg.date).toLocaleDateString("ne-NP", {
-          year: "numeric",
-          month: "short",
-        });
-        acc[month] = (acc[month] || 0) + 1;
-      } catch (e) {
-        // Ignore records with invalid dates
-      }
-      return acc;
-    }, {} as Record<string, number>);
+    const monthlyData = registrations.reduce(
+      (acc, reg) => {
+        try {
+          const month = new Date(reg.date).toLocaleDateString("ne-NP", {
+            year: "numeric",
+            month: "short",
+          });
+          acc[month] = (acc[month] || 0) + 1;
+        } catch {}
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     return {
       total,
@@ -891,7 +831,8 @@ const exportAllDoseData = async () => {
     };
   };
 
-  const stats = getStatistics();
+  // Usage:
+  const stats = getStatistics(registrations, screenings, totals);
 
   const genderData = [
     { name: "पुरुष", value: stats.maleCount, color: "#3B82F6" },
@@ -908,16 +849,19 @@ const exportAllDoseData = async () => {
     { name: "प्रतिक्रिया", value: stats.adverseReactions, color: "#EF4444" },
   ];
 
-  const districtData = Object.entries(stats.districtStats)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 10)
-    .map(([name, value]) => ({ name, value }));
+  // Convert districtStats to an array for the chart
+  const districtData: { name: string; value: number }[] = Object.entries(
+    stats.districtStats || {},
+  )
+    .map(([name, value]) => ({ name, value: value as number })) // cast value to number
+    .sort((a, b) => b.value - a.value) // sort descending
+    .slice(0, 10); // top 10
 
   const monthlyTrendData = Object.entries(stats.monthlyData).map(
     ([name, value]) => ({
       name,
       registrations: value,
-    })
+    }),
   );
 
   const uniqueDistricts = [
@@ -979,7 +923,7 @@ const exportAllDoseData = async () => {
                       कुल दर्ता
                     </p>
                     <p className="text-2xl font-bold text-blue-900">
-                      {totalCount}
+                      {totals.totalRegistrations}
                     </p>
                   </div>
                 </div>
@@ -995,7 +939,7 @@ const exportAllDoseData = async () => {
                       कुल स्क्रिनिङ
                     </p>
                     <p className="text-2xl font-bold text-purple-900">
-                      {totalDoseCount}
+                      {totals.totalDoses}
                     </p>
                   </div>
                 </div>
@@ -1046,7 +990,7 @@ const exportAllDoseData = async () => {
                       {stats.totalScreenings > 0
                         ? Math.round(
                             (stats.normalReactions / stats.totalScreenings) *
-                              100
+                              100,
                           )
                         : 0}
                       %
@@ -1074,7 +1018,7 @@ const exportAllDoseData = async () => {
           }}
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="registrations">दर्ता सूची</TabsTrigger>
             <TabsTrigger value="overview">सिंहावलोकन</TabsTrigger>
             <TabsTrigger value="screenings"> स्वर्णप्राशन लग</TabsTrigger>
@@ -1083,8 +1027,8 @@ const exportAllDoseData = async () => {
             {role === "premium" && (
               <>
                 <TabsTrigger value="selfRegistrations">SELF</TabsTrigger>
-                <TabsTrigger value="analytics">विश्लेषण</TabsTrigger>
-                <TabsTrigger value="trends">प्रवृत्ति</TabsTrigger>
+                {/* <TabsTrigger value="analytics">विश्लेषण</TabsTrigger>
+                <TabsTrigger value="trends">प्रवृत्ति</TabsTrigger> */}
               </>
             )}
           </TabsList>
@@ -1216,6 +1160,42 @@ const exportAllDoseData = async () => {
                       <SelectItem value="adverse">प्रतिकूल</SelectItem>
                     </SelectContent>
                   </Select>
+                  <div className="flex space-x-2 mb-4">
+                    <Select
+                      value={monthFilter}
+                      onValueChange={(value) => setMonthFilter(value)}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="महिना छान्नुहोस्" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">सबै महिना</SelectItem>
+                        {[...Array(12)].map((_, i) => (
+                          <SelectItem key={i} value={(i + 1).toString()}>
+                            {i + 1}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={yearFilter}
+                      onValueChange={(value) => setYearFilter(value)}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="वर्ष छान्नुहोस्" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">सबै वर्ष</SelectItem>
+                        {[2026, 2025].map((y) => (
+                          <SelectItem key={y} value={y.toString()}>
+                            {y}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <Button
                     onClick={exportAllData}
                     className="w-full"
@@ -1376,7 +1356,7 @@ const exportAllDoseData = async () => {
                             <TableCell>{record.previous_medications}</TableCell>
                             <TableCell>
                               {new Date(record.created_at).toLocaleDateString(
-                                "ne-NP"
+                                "ne-NP",
                               )}
                             </TableCell>
                             <TableCell>
@@ -1398,6 +1378,111 @@ const exportAllDoseData = async () => {
           {/* SCREENING LOG CONTENT */}
           <TabsContent value="screenings" className="space-y-6">
             <Card>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                  <div className="flex-1">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="नाम, अभिभावक वा सिरियल नम्बरले खोज्नुहोस्..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  <Select value={genderFilter} onValueChange={setGenderFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="लिङ्ग छान्नुहोस्" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">सबै लिङ्ग</SelectItem>
+                      <SelectItem value="male">पुरुष</SelectItem>
+                      <SelectItem value="female">महिला</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={districtFilter}
+                    onValueChange={setDistrictFilter}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="जिल्ला छान्नुहोस्" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">सबै जिल्ला</SelectItem>
+                      {uniqueDistricts.map((district) => (
+                        <SelectItem key={district} value={district}>
+                          {district}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={reactionFilter}
+                    onValueChange={setReactionFilter}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="प्रतिक्रिया छान्नुहोस्" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">सबै प्रतिक्रिया</SelectItem>
+                      <SelectItem value="normal">सामान्य</SelectItem>
+                      <SelectItem value="adverse">प्रतिकूल</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="flex space-x-2 mb-4">
+                    <Select
+                      value={monthFilter}
+                      onValueChange={(value) => setMonthFilter(value)}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="महिना छान्नुहोस्" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">सबै महिना</SelectItem>
+                        {[...Array(12)].map((_, i) => (
+                          <SelectItem key={i} value={(i + 1).toString()}>
+                            {i + 1}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={yearFilter}
+                      onValueChange={(value) => setYearFilter(value)}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="वर्ष छान्नुहोस्" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">सबै वर्ष</SelectItem>
+                        {[2026, 2025].map((y) => (
+                          <SelectItem key={y} value={y.toString()}>
+                            {y}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    onClick={exportAllDoseData}
+                    className="w-full"
+                    disabled={exporting} // Use the new state here
+                  >
+                    <Download
+                      className={`h-4 w-4 mr-2 ${exporting ? "animate-spin" : ""}`}
+                    />
+                    {exporting ? " CSV निर्यात" : " CSV निर्यात"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              {/* Enhanced Filters */}
+
               <CardHeader>
                 <CardTitle>
                   <div className="flex gap-2 items-center mt-4">
@@ -1423,17 +1508,6 @@ const exportAllDoseData = async () => {
                       }}
                     >
                       Next
-                    </Button>
-                    <Button
-                      onClick={exportAllDoseData}
-                      disabled={exporting} // Use the new state here
-                    >
-                      <Download
-                        className={`h-4 w-4 mr-2 ${
-                          exporting ? "animate-spin" : ""
-                        }`}
-                      />
-                      {exporting ? " CSV निर्यात" : " CSV निर्यात"}
                     </Button>
                   </div>
                 </CardTitle>
@@ -1473,7 +1547,7 @@ const exportAllDoseData = async () => {
                           </TableCell>
                           <TableCell>
                             {new Date(screen.screening_date).toLocaleDateString(
-                              "ne-NP"
+                              "ne-NP",
                             )}
                           </TableCell>
                         </TableRow>
